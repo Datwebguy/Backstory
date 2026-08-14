@@ -75,15 +75,44 @@ Smallest offline official-shaped run (no 115k haystacks, no OpenAI):
 python -m backstory.eval.run_smoke_eval
 ```
 
-LongMemEval (download the cleaned files yourself into `data/lme/`):
+LongMemEval oracle (download the cleaned files yourself into `data/lme/`,
+from https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned).
+Everything below is driven by `backstory.eval.run_official`, which ingests
+each instance's haystack sessions in date order, asks Backstory, writes
+`{question_id, hypothesis}` jsonl, and (if `OPENAI_API_KEY` is set) invokes
+the official judge itself:
 
 ```powershell
-python -m backstory.eval.ingest_lme --dataset data/lme/longmemeval_oracle.json --limit 10
-python -m backstory.eval.ask_lme --dataset data/lme/longmemeval_oracle.json --limit 10 --out runs/oracle10.jsonl
-python vendor/longmemeval/evaluate_qa.py gpt-4o runs/oracle10.jsonl data/lme/longmemeval_oracle.json
+# One question, ingest+ask only, no judge call:
+python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --ids 6aeb4375 --skip-official-judge
+
+# A stratified 12-question slice (2 per official type) across the full 500:
+python -m backstory.eval.slice_lme --dataset data/lme/longmemeval_oracle.json --per-type 2 --out data/lme/oracle_strat12.json
+python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12 --skip-official-judge
+
+# Same slice, official judge (needs OPENAI_API_KEY; scores gpt-4o-2024-08-06 yes/no per item):
+python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12
+
+# Full LongMemEval-S 500 (slow, needs OPENAI_API_KEY):
+python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --limit 0
 ```
 
-The last command is the official judge and needs `OPENAI_API_KEY`.
+Each run writes `runs/lme/<out-dir>/hypotheses.jsonl`, per-question
+`traces/<id>.json` (retrieval + answer), and `summary_unofficial.json`
+(a loose token-overlap diagnostic — **not** the scored metric). The judge's
+own output lands at `<hyp_file>.eval-results-gpt-4o` next to the hyp file,
+written by `vendor/longmemeval/evaluate_qa.py` (the official scorer;
+requires `OPENAI_API_KEY`, do not substitute the internal diagnostic for it).
+
+Backstory vs. a naive-graph ablation vs. a session-RAG baseline on the same
+12-question slice:
+
+```powershell
+python -m backstory.eval.run_compare
+```
+
+Writes `runs/lme/strat12/compare.json` (also unofficial contains-match; see
+`docs/LONGMEMEVAL_VALIDATION.md` for the last measured numbers and caveats).
 
 ## How HydraDB is used
 
