@@ -7,10 +7,13 @@ Inspired by the official LongMemEval abstention example:
 
 Gates, in order:
 1. no candidate facts at all -> abstain
-2. asked constraint (number+unit, named entity) not matched -> abstain
-3. asked predicate family has zero relevant facts -> abstain
-4. only contradicted current facts for a unique_state 'now' question -> qualify
-5. otherwise answer (possibly with history)
+2. asked predicate family has zero relevant facts -> abstain
+3. asked constraint (number+unit) not matched -> abstain
+4. question names a proper noun (person/org/place) that appears nowhere
+   in the retrieved evidence -> abstain (false premise, e.g. "my job at
+   Google" when the graph only knows about NovaTech)
+5. only contradicted current facts for a unique_state 'now' question -> qualify
+6. otherwise answer (possibly with history)
 """
 
 from __future__ import annotations
@@ -53,6 +56,15 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
     constraint = _asked_constraint(question)
     if constraint and not any(_satisfies_constraint(f, constraint) for f in relevant):
         return Decision("abstain", f"missing_constraint:{constraint}", relevant)
+
+    named = _asked_named_entities(question)
+    if named:
+        evidence_blob = norm_text(
+            " ".join(f"{f.object_text} {f.qualifiers} {f.quote} {f.subject_name}" for f in facts)
+        )
+        unmatched = [n for n in named if norm_text(n) not in evidence_blob]
+        if unmatched:
+            return Decision("abstain", f"false_premise_entity:{unmatched[0]}", relevant)
 
     if _asks_now(question):
         current = [f for f in relevant if f.is_current]
@@ -119,6 +131,35 @@ def _satisfies_constraint(fact: RetrievedFact, constraint: str) -> bool:
     if f"{amount}-{unit}" in blob or f"{amount} {unit}" in blob:
         return True
     return False
+
+
+_QUESTION_STARTERS = {
+    "how", "what", "where", "when", "why", "which", "who", "whose",
+    "do", "does", "did", "is", "are", "was", "were", "should", "could",
+    "would", "can", "will", "have", "has", "had", "tell", "i", "i'm",
+}
+
+
+def _asked_named_entities(question: str) -> list[str]:
+    """Capitalized proper-noun-like tokens the question asserts as fact.
+
+    Used to catch false-premise questions ("my current job at Google")
+    where the named entity was never mentioned anywhere in memory.
+    Sentence-initial capitals are skipped since English capitalizes the
+    first word regardless of whether it's a proper noun.
+    """
+    words = question.strip().split()
+    names = []
+    for i, word in enumerate(words):
+        core = word.strip("?.,!;:\"'")
+        if not core or not core[0].isupper() or core.upper() == core:
+            continue
+        if i == 0 or core.lower() in _QUESTION_STARTERS:
+            continue
+        if len(core) < 3:
+            continue
+        names.append(core)
+    return names
 
 
 def _asks_now(question: str) -> bool:

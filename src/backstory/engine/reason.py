@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from backstory.engine.abstain import ABSTAIN_TEXT, Decision
+from backstory.engine.normalize import norm_text
 from backstory.engine.retrieve import RetrievedFact
 
 
@@ -47,7 +48,11 @@ def template_answer(question: str, decision: Decision) -> str:
     q = question.lower()
     if "how many" in q:
         current = [f for f in facts if f.is_current and f.polarity > 0]
-        return str(len(current))
+        # Re-affirming the same fact across sessions (additive predicates
+        # like "owns"/"likes") produces one Fact per mention; the count the
+        # user wants is distinct objects, not raw fact rows.
+        distinct_objects = {norm_text(f.object_text) for f in current}
+        return str(len(distinct_objects))
     if any(w in q for w in ("where do i live", "where do i currently live", "where do i live now")):
         current = next((f for f in facts if f.is_current and f.predicate == "lives_in"), None)
         if current:
