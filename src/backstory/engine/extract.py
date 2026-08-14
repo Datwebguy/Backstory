@@ -11,6 +11,7 @@ contradictions, or the four demos.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from backstory.engine.normalize import Atom
@@ -112,3 +113,65 @@ def extract_with_llm(
     content = completion.choices[0].message.content or '{"atoms":[]}'
     payload = json.loads(content)
     return atoms_from_dicts(payload.get("atoms") or [], stated_at)
+
+
+_PATTERNS = (
+    (re.compile(r"\bi (?:live|am living|moved)(?: to| in) ([^.,]{2,60})", re.I), "lives_in", "unique_state", "place"),
+    (re.compile(r"\bi (?:work|worked|joined|left)(?: at| for)? ([^.,]{2,60})", re.I), "works_at", "unique_state", "org"),
+    (re.compile(r"\bi (?:graduated|got my degree)(?: with)?(?: a degree in)? ([^.,]{2,80})", re.I), "graduated", "unique_state", "thing"),
+    (re.compile(r"personal best[^\d]{0,40}(\d{1,2}:\d{2})", re.I), "personal_best", "unique_state", "thing"),
+    (re.compile(r"\bi (?:like|love|enjoy) ([^.,]{2,60})", re.I), "likes", "preference", "thing"),
+    (re.compile(r"\bi (?:don't like|do not like|hate) ([^.,]{2,60})", re.I), "likes", "preference", "thing"),
+)
+
+
+def heuristic_extract(text: str, stated_at: str, speaker: str = "user") -> list[Atom]:
+    """Conservative, non-benchmark-specific atoms from a single turn.
+
+    Always stores the turn as a stated fact so graph retrieval can see the
+    raw evidence even when a pattern does not fire.
+    """
+    atoms: list[Atom] = []
+    cleaned = " ".join((text or "").split())
+    if not cleaned:
+        return atoms
+    polarity_neg = bool(re.search(r"\b(don't like|do not like|hate|no longer)\b", cleaned, re.I))
+    for cre, predicate, pclass, etype in _PATTERNS:
+        match = cre.search(cleaned)
+        if not match:
+            continue
+        obj = match.group(1).strip()
+        kind = "preference" if pclass == "preference" else "state"
+        atoms.append(
+            Atom(
+                subject="user" if speaker == "user" else "assistant",
+                subject_type="person",
+                predicate=predicate,
+                object_text=obj,
+                object_entity=obj if etype in {"place", "org"} else None,
+                object_type=etype,
+                fact_kind=kind,
+                predicate_class=pclass,
+                polarity=-1 if (predicate == "likes" and polarity_neg) else 1,
+                confidence=0.55,
+                speaker=speaker,
+                stated_at=stated_at,
+                update_of=predicate if pclass == "unique_state" and ("moved" in cleaned.lower() or "personal best" in cleaned.lower()) else None,
+            )
+        )
+    snippet = cleaned[:500]
+    atoms.append(
+        Atom(
+            subject="user" if speaker == "user" else "assistant",
+            subject_type="person",
+            predicate="stated",
+            object_text=snippet,
+            fact_kind="state",
+            predicate_class="set_membership",
+            polarity=1,
+            confidence=0.4,
+            speaker=speaker,
+            stated_at=stated_at,
+        )
+    )
+    return atoms[:8]

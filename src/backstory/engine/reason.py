@@ -65,10 +65,15 @@ def template_answer(question: str, decision: Decision) -> str:
         return "Based on your earlier statements: " + "; ".join(bits) + "."
     if "what do i know" in q or "tell me about" in q:
         return " ".join(f"{f.predicate.replace('_', ' ')} {f.object_text}." for f in facts if f.is_current)
-    current = [f for f in facts if f.is_current]
-    if current:
-        return current[0].object_text
-    return facts[0].object_text
+    current = [f for f in facts if f.is_current] or facts
+    q_tokens = {t for t in question.lower().split() if len(t) > 2}
+
+    def score(fact: RetrievedFact) -> int:
+        blob = f"{fact.object_text} {fact.quote} {fact.predicate}".lower()
+        return sum(1 for t in q_tokens if t in blob)
+
+    current.sort(key=score, reverse=True)
+    return current[0].object_text
 
 
 def llm_answer(

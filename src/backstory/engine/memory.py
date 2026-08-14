@@ -8,7 +8,7 @@ from typing import Any
 
 from backstory.config import Settings, get_settings
 from backstory.engine.abstain import ABSTAIN_TEXT, decide
-from backstory.engine.extract import atoms_from_dicts, extract_with_llm
+from backstory.engine.extract import atoms_from_dicts, extract_with_llm, heuristic_extract
 from backstory.engine.mutate import GraphMutator
 from backstory.engine.normalize import Atom
 from backstory.engine.reason import Answer, llm_answer, template_answer
@@ -69,7 +69,7 @@ class MemoryEngine:
                 # preextracted is session-level; apply on last turn only
                 if idx == len(turns) - 1:
                     atoms = atoms_from_dicts(preextracted, occurred_at)
-            elif role == "user" and self.settings.openai_api_key:
+            elif self.settings.openai_api_key and role in {"user", "assistant"}:
                 atoms = extract_with_llm(
                     "\n".join(window),
                     occurred_at,
@@ -77,6 +77,8 @@ class MemoryEngine:
                     base_url=self.settings.openai_base_url,
                     model=self.settings.backstory_extract_model,
                 )
+            elif role in {"user", "assistant"}:
+                atoms = heuristic_extract(content, occurred_at, speaker=role)
             for atom in atoms:
                 if not atom.stated_at:
                     atom.stated_at = occurred_at
@@ -105,12 +107,18 @@ class MemoryEngine:
         question: str,
         question_date: str = "",
         as_of: str | None = None,
+        naive: bool = False,
     ) -> Answer:
         seeds = self.retriever.seed_entities(question, user_key)
         facts = self.retriever.facts_for_entities(seeds, as_of=as_of)
         facts = self.retriever.attach_conflicts(facts)
         # Prefer current facts for "now" questions by sorting
         facts.sort(key=lambda f: (not f.is_current, f.stated_at))
+        if naive:
+            for fact in facts:
+                fact.is_current = True
+                fact.status = "active"
+                fact.contradicted_by = []
         decision = decide(question, facts)
         if decision.action == "abstain":
             return Answer(ABSTAIN_TEXT, decision.action, decision.reason, decision.facts)
