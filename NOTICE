@@ -1,0 +1,33 @@
+Backstory
+==========
+
+This project is licensed under the MIT License (see LICENSE).
+
+Third-party components
+----------------------
+
+HydraDB
+  Source: https://github.com/hydra-db/hydradb
+  License: GNU Affero General Public License v3.0
+  Role: separate Docker service (graph-node). Backstory talks to it over
+  Bolt/HTTP and does not vendor HydraDB source.
+
+LongMemEval
+  Source: https://github.com/xiaowu0162/LongMemEval
+  Dataset: https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned
+  License: see upstream repository / Hugging Face card (MIT for the cleaned set)
+  Role: primary evaluation dataset. Evaluation script vendored under
+  vendor/longmemeval for reproducibility.
+
+BEAM
+  Source: https://github.com/mohammadtavakoli78/BEAM
+  License: MIT (code), CC BY-SA 4.0 (benchmark data)
+  Role: architectural reference and optional stress tests. Not required to run
+  the product.
+
+neo4j Python driver
+  License: Apache-2.0
+  Role: optional Bolt client.
+
+Other Python dependencies are listed in pyproject.toml with their respective
+licenses.

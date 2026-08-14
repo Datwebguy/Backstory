@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backstory</title>
+  <style>
+    :root { color-scheme: light; --ink: #111; --muted: #666; --line: #e6e6e6; --bg: #fafafa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.45 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.03em; }
+    .sub { color: var(--muted); margin-bottom: 28px; }
+    .row { display: flex; gap: 8px; margin: 8px 0 16px; }
+    input, textarea, button { font: inherit; }
+    input, textarea { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: #fff; }
+    button { border: 0; background: #111; color: #fff; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button.secondary { background: #fff; color: #111; border: 1px solid var(--line); }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 12px 0; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .fact { border-top: 1px solid var(--line); padding: 8px 0; }
+    .pill { display: inline-block; font-size: 11px; border-radius: 999px; padding: 2px 8px; background: #eee; }
+    .pill.current { background: #d9f7e4; }
+    .pill.hist { background: #eee; }
+    .answer { font-size: 20px; margin: 0 0 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Backstory</h1>
+  <p class="sub">Tell it something once. Come back later. It still knows the history.</p>
+
+  <div class="row">
+    <button id="load">Load four demo sessions</button>
+    <button class="secondary" id="refresh">Refresh timeline</button>
+  </div>
+
+  <div class="card">
+    <div class="muted">Say something</div>
+    <div class="row">
+      <textarea id="say" rows="2" placeholder="I moved to Abuja."></textarea>
+      <button id="remember">Remember</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Ask</div>
+    <div class="row">
+      <input id="ask" placeholder="Where do I work now?" />
+      <button id="go">Ask</button>
+    </div>
+    <div id="answer"></div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Timeline / changed facts</div>
+    <div id="timeline"></div>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function post(url, body) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+function renderEvidence(items) {
+  return (items || []).map(f => `
+    <div class="fact">
+      <span class="pill ${f.is_current ? 'current' : 'hist'}">${f.is_current ? 'current' : 'historical'}</span>
+      <strong>${f.predicate}</strong> ${f.object_text}
+      <div class="muted">${f.stated_at || ''} — ${f.quote || ''}</div>
+    </div>`).join('');
+}
+
+$('load').onclick = async () => {
+  await post('/api/demo/load', {});
+  await refresh();
+};
+
+$('remember').onclick = async () => {
+  const content = $('say').value.trim();
+  if (!content) return;
+  const now = new Date().toISOString().slice(0, 19);
+  await post('/api/sessions', {
+    session_key: 'live-' + Date.now(),
+    occurred_at: now,
+    turns: [{ role: 'user', content }],
+  });
+  $('say').value = '';
+  await refresh();
+};
+
+$('go').onclick = async () => {
+  const question = $('ask').value.trim();
+  const data = await post('/api/ask', { question });
+  $('answer').innerHTML = `<p class="answer">${data.text}</p><div class="muted">${data.action} · ${data.reason}</div>${renderEvidence(data.evidence)}`;
+};
+
+async function refresh() {
+  const res = await fetch('/api/timeline');
+  const data = await res.json();
+  $('timeline').innerHTML = renderEvidence(data.facts) || '<div class="muted">No memories yet.</div>';
+}
+
+$('refresh').onclick = refresh;
+refresh().catch(() => {});
+</script>
+</body>
+</html>
