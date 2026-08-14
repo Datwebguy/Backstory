@@ -5,6 +5,9 @@ from backstory.engine.memory import MemoryEngine
 
 
 def load(engine: MemoryEngine, user_key: str = USER) -> None:
+    marker = f"demo_loaded:{user_key}"
+    if engine.sidecar.get_meta(marker) == "1":
+        return
     for session in all_sessions():
         engine.ingest_session(
             user_key=user_key,
@@ -14,6 +17,7 @@ def load(engine: MemoryEngine, user_key: str = USER) -> None:
             title=session.get("title") or "",
             preextracted=session.get("atoms") or [],
         )
+    engine.sidecar.set_meta(marker, "1")
 
 
 def ask_all(engine: MemoryEngine, user_key: str = USER) -> list[dict]:

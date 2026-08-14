@@ -71,6 +71,17 @@ class SidecarStore:
     def close(self) -> None:
         self._conn.close()
 
+    def get_meta(self, key: str) -> str | None:
+        cur = self._conn.execute("SELECT value FROM meta WHERE key = ?", (key,))
+        row = cur.fetchone()
+        return None if row is None else str(row["value"])
+
+    def set_meta(self, key: str, value: str) -> None:
+        self._conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", (key, value)
+        )
+        self._conn.commit()
+
     def next_id(self) -> int:
         cur = self._conn.execute("SELECT value FROM meta WHERE key = 'next_id'")
         value = int(cur.fetchone()["value"])

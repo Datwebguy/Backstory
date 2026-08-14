@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-USER = "demo-user"
+USER = "demo-user-ui"
 
 
 def scenario_a_knowledge_update() -> list[dict[str, Any]]:

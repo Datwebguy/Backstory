@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -130,9 +131,22 @@ def timeline(user_key: str = USER) -> dict:
     }
 
 
-web = Path(__file__).resolve().parents[3] / "apps" / "web"
-if web.exists():
-    app.mount("/", StaticFiles(directory=web, html=True), name="web")
+WEB_DIR = Path(__file__).resolve().parents[3] / "apps" / "web"
+INDEX = WEB_DIR / "index.html"
+
+
+@app.get("/")
+def home() -> FileResponse:
+    if not INDEX.exists():
+        raise HTTPException(500, f"UI file missing: {INDEX}")
+    return FileResponse(
+        INDEX,
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
+
+if WEB_DIR.exists():
+    app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 
 def main() -> None:

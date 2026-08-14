@@ -4,109 +4,694 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Backstory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,560;9..144,640&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
-    :root { color-scheme: light; --ink: #111; --muted: #666; --line: #e6e6e6; --bg: #fafafa; }
+    :root {
+      --paper: #f3efe6;
+      --paper-2: #ece6da;
+      --ink: #1c1712;
+      --muted: #6f675d;
+      --faint: #9a9287;
+      --line: rgba(28, 23, 18, 0.08);
+      --accent: #8c3b24;
+      --accent-soft: #f0ddd4;
+      --ok: #2f4a38;
+      --shadow: 0 24px 60px rgba(28, 23, 18, 0.08);
+      --sans: "Source Sans 3", "Segoe UI", sans-serif;
+      --serif: "Fraunces", "Times New Roman", serif;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 16px/1.45 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
-    main { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
-    h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.03em; }
-    .sub { color: var(--muted); margin-bottom: 28px; }
-    .row { display: flex; gap: 8px; margin: 8px 0 16px; }
-    input, textarea, button { font: inherit; }
-    input, textarea { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: #fff; }
-    button { border: 0; background: #111; color: #fff; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
-    button.secondary { background: #fff; color: #111; border: 1px solid var(--line); }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 12px 0; }
-    .muted { color: var(--muted); font-size: 13px; }
-    .fact { border-top: 1px solid var(--line); padding: 8px 0; }
-    .pill { display: inline-block; font-size: 11px; border-radius: 999px; padding: 2px 8px; background: #eee; }
-    .pill.current { background: #d9f7e4; }
-    .pill.hist { background: #eee; }
-    .answer { font-size: 20px; margin: 0 0 8px; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.5 var(--sans);
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px 12px;
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .brand {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 560;
+      letter-spacing: -0.03em;
+    }
+    .header-actions { display: flex; gap: 8px; }
+    .ghost {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    .ghost:hover { background: var(--paper-2); color: var(--ink); }
+    .stage {
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 8px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .hero {
+      padding: 48px 8px 28px;
+      animation: rise .5s ease;
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 460;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      margin: 0 0 16px;
+    }
+    .hero p {
+      margin: 0;
+      max-width: 34em;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .scenarios {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .scenario {
+      text-align: left;
+      background: transparent;
+      border: 0;
+      padding: 14px 4px 10px;
+      border-top: 1px solid var(--line);
+      color: inherit;
+    }
+    .scenario strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .scenario span { color: var(--muted); font-size: 14.5px; }
+    .scenario:hover strong { color: var(--accent); }
+    .thread {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 4px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .msg { max-width: 92%; animation: rise .35s ease; }
+    .msg.user { align-self: flex-end; }
+    .msg.user .bubble {
+      background: var(--ink);
+      color: #f7f3ec;
+      padding: 12px 16px;
+      border-radius: 18px 18px 5px 18px;
+    }
+    .msg.bot { align-self: flex-start; }
+    .msg.bot .bubble {
+      padding: 2px 2px 0;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+    .msg .when {
+      font-size: 12px;
+      color: var(--faint);
+      margin-top: 6px;
+    }
+    .msg.user .when { text-align: right; }
+    .abstain .bubble {
+      color: var(--ink);
+    }
+    .abstain-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .evidence-toggle {
+      margin-top: 10px;
+      background: none;
+      border: 0;
+      color: var(--accent);
+      padding: 0;
+      font-size: 14.5px;
+    }
+    .composer-wrap {
+      border-top: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .composer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px 20px 22px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .composer textarea {
+      flex: 1;
+      resize: none;
+      border: 0;
+      background: var(--paper-2);
+      border-radius: 18px;
+      padding: 14px 16px;
+      min-height: 52px;
+      max-height: 140px;
+      outline: none;
+      color: var(--ink);
+    }
+    .send {
+      width: 52px;
+      height: 52px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #f7f3ec;
+      flex: none;
+    }
+    .send:disabled { opacity: .35; }
+    .status {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 28px 8px;
+      color: var(--faint);
+      font-size: 13px;
+      min-height: 18px;
+    }
+    .drawer {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: min(420px, 100%);
+      background: #faf7f1;
+      box-shadow: var(--shadow);
+      transform: translateX(104%);
+      transition: transform .28s ease;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,23,18,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+      z-index: 15;
+    }
+    .scrim.on { opacity: 1; pointer-events: auto; }
+    .drawer header {
+      padding: 22px 22px 8px;
+    }
+    .drawer h2 {
+      font-family: var(--serif);
+      font-weight: 520;
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+    .drawer .sub { color: var(--muted); margin: 6px 0 0; }
+    .mem-list {
+      overflow-y: auto;
+      padding: 8px 22px 40px;
+    }
+    .change {
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+    }
+    .change h3 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      font-weight: 600;
+    }
+    .step { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
+    .rail {
+      width: 8px;
+      justify-self: center;
+      background: var(--paper-2);
+      position: relative;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--faint);
+      position: absolute;
+      left: 0;
+      top: 6px;
+    }
+    .dot.now { background: var(--accent); width: 10px; height: 10px; left: -1px; }
+    .val { font-size: 20px; font-family: var(--serif); letter-spacing: -0.02em; }
+    .meta { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .current-tag { color: var(--accent); font-size: 13px; margin-top: 4px; }
+    .quote {
+      margin-top: 8px;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 14.5px;
+    }
+    .empty { color: var(--muted); padding: 24px 0; }
+    .thinking { color: var(--faint); font-style: italic; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (max-width: 720px) {
+      .scenarios { grid-template-columns: 1fr; }
+      header { padding: 16px 16px 8px; }
+      .hero { padding-top: 24px; }
+      .msg { max-width: 100%; }
+    }
+    @media (min-width: 1100px) {
+      .app.open-mem .stage { margin-right: 420px; }
+      .app.open-mem header { margin-right: 420px; }
+    }
   </style>
 </head>
 <body>
-<main>
-  <h1>Backstory</h1>
-  <p class="sub">Tell it something once. Come back later. It still knows the history.</p>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">Backstory</div>
+      <div class="header-actions">
+        <button class="ghost" id="tryBtn" type="button">Try a memory</button>
+        <button class="ghost" id="memBtn" type="button">What it remembers</button>
+      </div>
+    </header>
 
-  <div class="row">
-    <button id="load">Load four demo sessions</button>
-    <button class="secondary" id="refresh">Refresh timeline</button>
-  </div>
+    <div class="stage">
+      <section class="hero" id="hero">
+        <h1>Your AI remembers what came before.</h1>
+        <p>Ask about something you said weeks ago, revisit how a decision changed, or see what Backstory actually remembers.</p>
+        <div class="scenarios" id="scenarios">
+          <button class="scenario" data-demo="work" type="button">
+            <strong>Changed plans</strong>
+            <span>A person's work history changed over several conversations.</span>
+          </button>
+          <button class="scenario" data-demo="ada" type="button">
+            <strong>Remembered across conversations</strong>
+            <span>Information about Ada is spread across multiple sessions.</span>
+          </button>
+          <button class="scenario" data-demo="school" type="button">
+            <strong>Knows when it does not know</strong>
+            <span>Ask something that never appeared in memory.</span>
+          </button>
+          <button class="scenario" data-demo="thinkpad" type="button">
+            <strong>Decision history</strong>
+            <span>Trace how a purchase decision evolved.</span>
+          </button>
+        </div>
+      </section>
+      <div class="thread" id="thread" hidden></div>
+    </div>
 
-  <div class="card">
-    <div class="muted">Say something</div>
-    <div class="row">
-      <textarea id="say" rows="2" placeholder="I moved to Abuja."></textarea>
-      <button id="remember">Remember</button>
+    <div>
+      <div class="status" id="status"></div>
+      <div class="composer-wrap">
+        <form class="composer" id="form">
+          <textarea id="input" rows="1" placeholder="Ask Backstory, or tell it something to remember."></textarea>
+          <button class="send" id="send" type="submit" aria-label="Send">↑</button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="muted">Ask</div>
-    <div class="row">
-      <input id="ask" placeholder="Where do I work now?" />
-      <button id="go">Ask</button>
-    </div>
-    <div id="answer"></div>
-  </div>
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <header>
+      <div>
+        <h2>What it remembers</h2>
+        <p class="sub">Current information, and how it changed.</p>
+      </div>
+      <button class="ghost" id="closeMem" type="button">Close</button>
+    </header>
+    <div class="mem-list" id="memList"></div>
+  </aside>
 
-  <div class="card">
-    <div class="muted">Timeline / changed facts</div>
-    <div id="timeline"></div>
-  </div>
-</main>
 <script>
 const $ = (id) => document.getElementById(id);
+const thread = $("thread");
+const hero = $("hero");
+const input = $("input");
+const statusEl = $("status");
+let demoLoaded = false;
+let lastEvidence = [];
+let busy = false;
+
+const DEMOS = {
+  work: {
+    seed: [
+      { role: "user", text: "I'm working at Company A.", when: "February 4" },
+      { role: "user", text: "I left Company A last week.", when: "May 17" },
+      { role: "user", text: "I joined Company B.", when: "June 23" },
+    ],
+    ask: "Where do I work now?",
+  },
+  ada: {
+    seed: [
+      { role: "user", text: "My sister is Ada.", when: "January 12" },
+      { role: "user", text: "Ada lives in London.", when: "March 8" },
+      { role: "user", text: "She's studying medicine.", when: "July 2" },
+    ],
+    ask: "What do I know about Ada?",
+  },
+  school: {
+    seed: [
+      { role: "user", text: "I upgraded my old 10-gallon tank, which has my betta fish, Bubbles.", when: "April 1" },
+      { role: "user", text: "I added decorations to the 20-gallon tank.", when: "April 1" },
+    ],
+    ask: "What was the name of my secondary school?",
+  },
+  thinkpad: {
+    seed: [
+      { role: "user", text: "I'm planning to buy a MacBook.", when: "January 20" },
+      { role: "user", text: "I think I'll get Windows instead.", when: "March 1" },
+      { role: "user", text: "I need something good for coding.", when: "April 9" },
+      { role: "user", text: "I bought a ThinkPad.", when: "June 1" },
+    ],
+    ask: "Why did I choose the ThinkPad?",
+  },
+};
+
+const LABELS = {
+  works_at: "Work",
+  lives_in: "Where you live",
+  prefers: "Preference",
+  owns: "Things you own",
+  has_sister: "Family",
+  bought: "Purchase",
+  needs: "What you needed",
+  studies: "Studies",
+  has: "Has",
+};
+
+function prettyDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+}
+
+function humanLabel(predicate) {
+  return LABELS[predicate] || predicate.replaceAll("_", " ");
+}
+
+function setStatus(text) {
+  statusEl.textContent = text || "";
+}
+
+function showThread() {
+  hero.hidden = true;
+  thread.hidden = false;
+}
+
+function addMsg(role, html, extra = "") {
+  showThread();
+  const wrap = document.createElement("article");
+  wrap.className = `msg ${role} ${extra}`;
+  wrap.innerHTML = `<div class="bubble">${html}</div>`;
+  thread.appendChild(wrap);
+  thread.scrollTop = thread.scrollHeight;
+  return wrap;
+}
 
 async function post(url, body) {
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-function renderEvidence(items) {
-  return (items || []).map(f => `
-    <div class="fact">
-      <span class="pill ${f.is_current ? 'current' : 'hist'}">${f.is_current ? 'current' : 'historical'}</span>
-      <strong>${f.predicate}</strong> ${f.object_text}
-      <div class="muted">${f.stated_at || ''} — ${f.quote || ''}</div>
-    </div>`).join('');
+async function ensureDemo() {
+  if (demoLoaded) return;
+  setStatus("Loading sample conversations…");
+  await post("/api/demo/load", {});
+  demoLoaded = true;
+  setStatus("");
 }
 
-$('load').onclick = async () => {
-  await post('/api/demo/load', {});
-  await refresh();
-};
-
-$('remember').onclick = async () => {
-  const content = $('say').value.trim();
-  if (!content) return;
-  const now = new Date().toISOString().slice(0, 19);
-  await post('/api/sessions', {
-    session_key: 'live-' + Date.now(),
-    occurred_at: now,
-    turns: [{ role: 'user', content }],
-  });
-  $('say').value = '';
-  await refresh();
-};
-
-$('go').onclick = async () => {
-  const question = $('ask').value.trim();
-  const data = await post('/api/ask', { question });
-  $('answer').innerHTML = `<p class="answer">${data.text}</p><div class="muted">${data.action} · ${data.reason}</div>${renderEvidence(data.evidence)}`;
-};
-
-async function refresh() {
-  const res = await fetch('/api/timeline');
-  const data = await res.json();
-  $('timeline').innerHTML = renderEvidence(data.facts) || '<div class="muted">No memories yet.</div>';
+function collapseFacts(facts) {
+  const groups = new Map();
+  for (const fact of facts || []) {
+    if (!fact.predicate || fact.predicate === "stated") continue;
+    const key = fact.predicate;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(fact);
+  }
+  const stories = [];
+  for (const [predicate, rows] of groups) {
+    const byValue = new Map();
+    for (const row of rows) {
+      const value = (row.object_text || "").trim();
+      if (!value) continue;
+      const bucket = byValue.get(value) || {
+        value,
+        dates: [],
+        quotes: [],
+        current: false,
+        superseded: false,
+      };
+      if (row.stated_at) bucket.dates.push(row.stated_at);
+      if (row.quote && !bucket.quotes.includes(row.quote)) bucket.quotes.push(row.quote);
+      if (row.is_current && row.status !== "superseded") bucket.current = true;
+      if (row.status === "superseded" || row.is_current === false) bucket.superseded = true;
+      byValue.set(value, bucket);
+    }
+    const values = [...byValue.values()].sort((a, b) => (a.dates[0] || "").localeCompare(b.dates[0] || ""));
+    if (!values.length) continue;
+    // Same value marked both current and historical after a second ingest:
+    // treat as one memory. Distinct values are a real change.
+    const unique = values.map((item) => {
+      const first = item.dates.slice().sort()[0];
+      return {
+        value: item.value,
+        date: prettyDate(first),
+        iso: first,
+        quote: item.quotes.find((q) => !/^Nice|^Congrats|^Sorry/i.test(q)) || item.quotes[0] || "",
+        current: item.current && !values.some((other) => other.value !== item.value && other.current && other.dates[0] > (item.dates[0] || "")),
+      };
+    });
+    if (unique.length > 1) {
+      const latestCurrent = [...unique].reverse().find((v) => v.current) || unique[unique.length - 1];
+      unique.forEach((v) => { v.current = v === latestCurrent; });
+    }
+    stories.push({ predicate, title: humanLabel(predicate), values: unique });
+  }
+  stories.sort((a, b) => (a.values[0]?.iso || "").localeCompare(b.values[0]?.iso || ""));
+  return stories;
 }
 
-$('refresh').onclick = refresh;
-refresh().catch(() => {});
+function renderMemory(facts) {
+  const stories = collapseFacts(facts);
+  if (!stories.length) {
+    $("memList").innerHTML = `<p class="empty">Nothing remembered yet. Tell Backstory something, or try a memory scenario.</p>`;
+    return;
+  }
+  $("memList").innerHTML = stories.map((story) => {
+    const steps = story.values.map((step, i) => `
+      <div class="step" style="margin-bottom:${i === story.values.length - 1 ? 0 : 16}px">
+        <div class="rail"><span class="dot ${step.current ? "now" : ""}"></span></div>
+        <div>
+          <div class="val">${escapeHtml(prettyValue(story.predicate, step.value))}</div>
+          <div class="meta">${escapeHtml(step.date)}</div>
+          ${step.current ? `<div class="current-tag">Current</div>` : ""}
+          ${step.quote ? `<div class="quote">“${escapeHtml(clip(step.quote, 140))}”</div>` : ""}
+        </div>
+      </div>`).join("");
+    return `<section class="change"><h3>${escapeHtml(story.title)}</h3>${steps}</section>`;
+  }).join("");
+}
+
+function prettyValue(predicate, value) {
+  if (predicate === "works_at" && value === "unemployed") return "Left previous role";
+  return value;
+}
+
+function humanizeEvidence(facts) {
+  const stories = collapseFacts(facts);
+  if (!stories.length) return "";
+  return stories.map((story) => {
+    if (story.values.length === 1) {
+      const v = story.values[0];
+      return `You mentioned ${prettyValue(story.predicate, v.value).toLowerCase()}${v.date ? ` on ${v.date}` : ""}.`;
+    }
+    const first = story.values[0];
+    const last = story.values[story.values.length - 1];
+    return `You first mentioned ${prettyValue(story.predicate, first.value)} on ${first.date}. Later, this became ${prettyValue(story.predicate, last.value)} on ${last.date}.`;
+  }).join(" ");
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function clip(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+function openDrawer() {
+  $("drawer").classList.add("open");
+  $("scrim").classList.add("on");
+  $("app").classList.add("open-mem");
+  $("drawer").setAttribute("aria-hidden", "false");
+}
+function closeDrawer() {
+  $("drawer").classList.remove("open");
+  $("scrim").classList.remove("on");
+  $("app").classList.remove("open-mem");
+  $("drawer").setAttribute("aria-hidden", "true");
+}
+
+async function refreshMemory() {
+  const data = await fetch("/api/timeline").then((r) => r.json());
+  renderMemory(data.facts || []);
+}
+
+function renderAnswer(data) {
+  const abstain = data.action === "abstain";
+  const evidence = data.evidence || [];
+  lastEvidence = evidence;
+  let html = escapeHtml(data.text);
+  if (abstain) {
+    html += `<div class="abstain-note">Not guessing is part of how Backstory stays trustworthy.</div>`;
+  } else if (evidence.length) {
+    const n = new Set(evidence.map((e) => e.predicate + e.object_text)).size || evidence.length;
+    html += `<div><button class="evidence-toggle" type="button" data-open-mem="1">Based on ${n} ${n === 1 ? "memory" : "memories"}</button></div>`;
+    const summary = humanizeEvidence(evidence);
+    if (summary) html += `<div class="abstain-note">${escapeHtml(summary)}</div>`;
+  }
+  addMsg("bot", html, abstain ? "abstain" : "");
+}
+
+async function ask(question) {
+  addMsg("user", escapeHtml(question));
+  const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
+  setStatus("Searching memory…");
+  try {
+    const data = await post("/api/ask", { question });
+    thinking.remove();
+    renderAnswer(data);
+    await refreshMemory();
+  } catch (err) {
+    thinking.remove();
+    addMsg("bot", "I could not reach memory just then. Give it another moment.");
+    setStatus("");
+    return;
+  }
+  setStatus("");
+}
+
+async function remember(text) {
+  addMsg("user", escapeHtml(text));
+  setStatus("Remembering…");
+  try {
+    await post("/api/sessions", {
+      session_key: "live-" + Date.now(),
+      occurred_at: new Date().toISOString().slice(0, 19),
+      turns: [{ role: "user", content: text }],
+    });
+    addMsg("bot", "I’ll keep that.");
+    await refreshMemory();
+  } catch (err) {
+    addMsg("bot", "I could not store that just then.");
+  }
+  setStatus("");
+}
+
+function looksLikeQuestion(text) {
+  return /[?]|(^(what|where|when|why|how|who|can you|do you|did i|tell me)\b)/i.test(text.trim());
+}
+
+async function runDemo(key) {
+  if (busy) return;
+  busy = true;
+  $("send").disabled = true;
+  try {
+    await ensureDemo();
+    thread.innerHTML = "";
+    showThread();
+    const demo = DEMOS[key];
+    for (const line of demo.seed) {
+      const el = addMsg("user", escapeHtml(line.text));
+      el.insertAdjacentHTML("beforeend", `<div class="when">${line.when}</div>`);
+      await new Promise((r) => setTimeout(r, 180));
+    }
+    await ask(demo.ask);
+  } finally {
+    busy = false;
+    $("send").disabled = false;
+  }
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || busy) return;
+  input.value = "";
+  input.style.height = "auto";
+  busy = true;
+  $("send").disabled = true;
+  try {
+    if (looksLikeQuestion(text)) await ask(text);
+    else await remember(text);
+  } finally {
+    busy = false;
+    $("send").disabled = false;
+    input.focus();
+  }
+});
+
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 140) + "px";
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    $("form").requestSubmit();
+  }
+});
+
+$("scenarios").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-demo]");
+  if (btn) runDemo(btn.dataset.demo);
+});
+$("tryBtn").onclick = () => {
+  hero.hidden = false;
+  thread.hidden = true;
+  thread.innerHTML = "";
+};
+$("memBtn").onclick = async () => { await refreshMemory(); openDrawer(); };
+$("closeMem").onclick = closeDrawer;
+$("scrim").onclick = closeDrawer;
+thread.addEventListener("click", async (e) => {
+  if (e.target.dataset.openMem) {
+    await refreshMemory();
+    openDrawer();
+  }
+});
+
+refreshMemory().catch(() => {});
 </script>
 </body>
 </html>
