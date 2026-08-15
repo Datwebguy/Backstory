@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backstory</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fdfbf9'/%3E%3Cpath d='M18 3 7 18h7l-2 11 12-16h-8z' fill='%23ff6f1e' stroke='%23171717' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,560;9..144,600;9..144,640;9..144,680&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* Superr-style tokens */
+      --cream: #fdfbf9;
+      --charcoal: #171717;
+      --cocoa: #2b1a07;
+      --true-black: #000000;
+      --dew: #f7efe9;
+      --orange: #ff6f1e;
+      --sienna: #ce500a;
+      --sky: #3b82f6;
+      --bubblegum: #ff66cf;
+      --sprout: #22c55e;
+      --shadow-mist: #bebcbb;
+      --gelica: "Fraunces", "Times New Roman", serif;
+      --geist: "Inter", "Segoe UI", sans-serif;
+      --r-tags: 20px;
+      --r-cards: 12px;
+      --r-footer: 56px;
+      --r-inputs: 8px;
+      --r-buttons: 20px;
+      --shadow-lg: 0 2px 20px rgba(0, 0, 0, 0.06);
+      --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.25);
+
+      /* legacy aliases so existing component rules pick up the new system */
+      --paper: var(--cream);
+      --paper-2: var(--dew);
+      --ink: var(--charcoal);
+      --muted: #6f675a;
+      --faint: #9a9287;
+      --line: rgba(23, 23, 23, 0.14);
+      --accent: var(--orange);
+      --accent-soft: #ffe3d2;
+      --ok: #2f4a38;
+      --shadow: var(--shadow-lg);
+      --sans: var(--geist);
+      --serif: var(--gelica);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.5 var(--sans);
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px 12px;
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--serif);
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--cocoa);
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      flex: none;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .ghost {
+      display: inline-flex;
+      align-items: center;
+      background: var(--cream);
+      border: 1.5px solid var(--charcoal);
+      color: var(--charcoal);
+      padding: 9px 18px;
+      border-radius: var(--r-buttons);
+      font-family: var(--geist);
+      font-size: 14.5px;
+      font-weight: 500;
+      text-decoration: none;
+      box-shadow: var(--shadow-subtle);
+    }
+    .ghost:hover { border-color: var(--orange); color: var(--sienna); background: var(--cream); }
+    .stage {
+      max-width: 880px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 8px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .hero {
+      padding: 32px 8px 0;
+      animation: rise .5s ease;
+    }
+    .hero-copy--app { max-width: 640px; }
+    .app-kicker {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--cocoa);
+      margin: 0 0 6px;
+    }
+    .hero-copy--app p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .scenarios {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .scenario {
+      text-align: left;
+      background: var(--dew);
+      border: 1.5px solid var(--charcoal);
+      border-radius: var(--r-cards);
+      padding: 14px 16px 12px;
+      color: inherit;
+    }
+    .scenario strong {
+      display: block;
+      font-family: var(--gelica);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .scenario span { color: var(--muted); font-size: 14.5px; }
+    .scenario:hover { border-color: var(--orange); box-shadow: var(--shadow-subtle); }
+    .scenario:hover strong { color: var(--sienna); }
+    .thread {
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 4px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .msg { max-width: 92%; animation: rise .35s ease; }
+    .msg.user { align-self: flex-end; }
+    .msg.user .bubble {
+      background: var(--ink);
+      color: #f7f3ec;
+      padding: 12px 16px;
+      border-radius: 18px 18px 5px 18px;
+    }
+    .msg.bot { align-self: flex-start; }
+    .msg.bot .bubble {
+      padding: 2px 2px 0;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+    .msg .when {
+      font-size: 12px;
+      color: var(--faint);
+      margin-top: 6px;
+    }
+    .msg.user .when { text-align: right; }
+    .abstain .bubble {
+      color: var(--ink);
+    }
+    .abstain-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .evidence-toggle {
+      margin-top: 10px;
+      background: none;
+      border: 0;
+      color: var(--accent);
+      padding: 0;
+      font-size: 14.5px;
+    }
+    .composer-wrap {
+      border-top: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .composer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px 20px 22px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .composer textarea {
+      flex: 1;
+      resize: none;
+      border: 1.5px solid var(--charcoal);
+      background: var(--cream);
+      border-radius: var(--r-inputs);
+      padding: 14px 16px;
+      min-height: 52px;
+      max-height: 140px;
+      outline: none;
+      color: var(--ink);
+      font-family: var(--gelica);
+    }
+    .composer textarea:focus { border-color: var(--orange); }
+    .send {
+      width: 52px;
+      height: 52px;
+      border: 1.5px solid var(--charcoal);
+      border-radius: 50%;
+      background: var(--cream);
+      color: var(--charcoal);
+      box-shadow: var(--shadow-subtle);
+      flex: none;
+      font-size: 18px;
+    }
+    .send:hover:not(:disabled) { border-color: var(--orange); color: var(--sienna); }
+    .send:disabled { opacity: .35; }
+    .status {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 28px 8px;
+      color: var(--faint);
+      font-size: 13px;
+      min-height: 18px;
+    }
+    .drawer {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: min(420px, 100%);
+      background: var(--dew);
+      border-left: 1.5px solid var(--charcoal);
+      box-shadow: var(--shadow);
+      transform: translateX(104%);
+      transition: transform .28s ease;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,23,18,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+      z-index: 15;
+    }
+    .scrim.on { opacity: 1; pointer-events: auto; }
+    .drawer header {
+      padding: 22px 22px 8px;
+    }
+    .drawer h2 {
+      font-family: var(--serif);
+      font-weight: 520;
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+    .drawer .sub { color: var(--muted); margin: 6px 0 0; }
+    .mem-list {
+      overflow-y: auto;
+      padding: 8px 22px 40px;
+    }
+    .change {
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+    }
+    .change h3 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      font-weight: 600;
+    }
+    .step { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
+    .rail {
+      width: 8px;
+      justify-self: center;
+      background: var(--paper-2);
+      position: relative;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--faint);
+      position: absolute;
+      left: 0;
+      top: 6px;
+    }
+    .dot.now { background: var(--accent); width: 10px; height: 10px; left: -1px; }
+    .val { font-size: 20px; font-family: var(--serif); letter-spacing: -0.02em; }
+    .meta { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .current-tag { color: var(--accent); font-size: 13px; margin-top: 4px; }
+    .quote {
+      margin-top: 8px;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 14.5px;
+    }
+    .empty { color: var(--muted); padding: 24px 0; }
+    .thinking { color: var(--faint); font-style: italic; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (max-width: 720px) {
+      .scenarios { grid-template-columns: 1fr; }
+      header { padding: 16px 16px 8px; }
+      .hero { padding-top: 20px; }
+      .msg { max-width: 100%; }
+    }
+    @media (min-width: 1100px) {
+      .app.open-mem .stage { margin-right: 420px; }
+      .app.open-mem header { margin-right: 420px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6" cy="7" r="3.4" fill="#fdfbf9" stroke="#171717" stroke-width="1.5"/>
+          <circle cx="20" cy="7" r="3.4" fill="#fdfbf9" stroke="#171717" stroke-width="1.5"/>
+          <circle cx="13" cy="20" r="3.6" fill="#ff6f1e" stroke="#171717" stroke-width="1.5"/>
+          <path d="M8.6 9.2 11.3 17M17.4 9.2 14.7 17M9.4 7H16.6" stroke="#171717" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        backstory
+      </div>
+      <div class="header-actions">
+        <a class="ghost" href="/">← about backstory</a>
+        <button class="ghost" id="tryBtn" type="button">try a memory</button>
+        <button class="ghost" id="memBtn" type="button">what it remembers</button>
+      </div>
+    </header>
+
+    <div class="stage">
+      <section class="hero" id="hero">
+        <div class="hero-copy hero-copy--app" id="try">
+          <h2 class="app-kicker">pick a memory to explore</h2>
+          <p>Or just start typing below — Backstory will ask or remember depending on what you say.</p>
+          <div class="scenarios" id="scenarios">
+            <button class="scenario" data-demo="work" type="button">
+              <strong>Changed plans</strong>
+              <span>A person's work history changed over several conversations.</span>
+            </button>
+            <button class="scenario" data-demo="ada" type="button">
+              <strong>Remembered across conversations</strong>
+              <span>Information about Ada is spread across multiple sessions.</span>
+            </button>
+            <button class="scenario" data-demo="school" type="button">
+              <strong>Knows when it does not know</strong>
+              <span>Ask something that never appeared in memory.</span>
+            </button>
+            <button class="scenario" data-demo="thinkpad" type="button">
+              <strong>Decision history</strong>
+              <span>Trace how a purchase decision evolved.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+      <div class="thread" id="thread" hidden></div>
+    </div>
+
+    <div>
+      <div class="status" id="status"></div>
+      <div class="composer-wrap">
+        <form class="composer" id="form">
+          <textarea id="input" rows="1" placeholder="Ask Backstory, or tell it something to remember."></textarea>
+          <button class="send" id="send" type="submit" aria-label="Send">↑</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <header>
+      <div>
+        <h2>What it remembers</h2>
+        <p class="sub">Current information, and how it changed.</p>
+      </div>
+      <button class="ghost" id="closeMem" type="button">Close</button>
+    </header>
+    <div class="mem-list" id="memList"></div>
+  </aside>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const thread = $("thread");
+const hero = $("hero");
+const input = $("input");
+const statusEl = $("status");
+let demoLoaded = false;
+let lastEvidence = [];
+let busy = false;
+
+const DEMOS = {
+  work: {
+    seed: [
+      { role: "user", text: "I'm working at Company A.", when: "February 4" },
+      { role: "user", text: "I left Company A last week.", when: "May 17" },
+      { role: "user", text: "I joined Company B.", when: "June 23" },
+    ],
+    ask: "Where do I work now?",
+  },
+  ada: {
+    seed: [
+      { role: "user", text: "My sister is Ada.", when: "January 12" },
+      { role: "user", text: "Ada lives in London.", when: "March 8" },
+      { role: "user", text: "She's studying medicine.", when: "July 2" },
+    ],
+    ask: "What do I know about Ada?",
+  },
+  school: {
+    seed: [
+      { role: "user", text: "I upgraded my old 10-gallon tank, which has my betta fish, Bubbles.", when: "April 1" },
+      { role: "user", text: "I added decorations to the 20-gallon tank.", when: "April 1" },
+    ],
+    ask: "What was the name of my secondary school?",
+  },
+  thinkpad: {
+    seed: [
+      { role: "user", text: "I'm planning to buy a MacBook.", when: "January 20" },
+      { role: "user", text: "I think I'll get Windows instead.", when: "March 1" },
+      { role: "user", text: "I need something good for coding.", when: "April 9" },
+      { role: "user", text: "I bought a ThinkPad.", when: "June 1" },
+    ],
+    ask: "Why did I choose the ThinkPad?",
+  },
+};
+
+const LABELS = {
+  works_at: "Work",
+  lives_in: "Where you live",
+  prefers: "Preference",
+  owns: "Things you own",
+  has_sister: "Family",
+  bought: "Purchase",
+  needs: "What you needed",
+  studies: "Studies",
+  has: "Has",
+};
+
+function prettyDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+}
+
+function humanLabel(predicate) {
+  return LABELS[predicate] || predicate.replaceAll("_", " ");
+}
+
+function setStatus(text) {
+  statusEl.textContent = text || "";
+}
+
+function showThread() {
+  hero.hidden = true;
+  thread.hidden = false;
+}
+
+function addMsg(role, html, extra = "") {
+  showThread();
+  const wrap = document.createElement("article");
+  wrap.className = `msg ${role} ${extra}`;
+  wrap.innerHTML = `<div class="bubble">${html}</div>`;
+  thread.appendChild(wrap);
+  thread.scrollTop = thread.scrollHeight;
+  return wrap;
+}
+
+async function post(url, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function ensureDemo() {
+  if (demoLoaded) return;
+  setStatus("Loading sample conversations…");
+  await post("/api/demo/load", {});
+  demoLoaded = true;
+  setStatus("");
+}
+
+function collapseFacts(facts) {
+  const groups = new Map();
+  for (const fact of facts || []) {
+    if (!fact.predicate || fact.predicate === "stated") continue;
+    const key = fact.predicate;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(fact);
+  }
+  const stories = [];
+  for (const [predicate, rows] of groups) {
+    const byValue = new Map();
+    for (const row of rows) {
+      const value = (row.object_text || "").trim();
+      if (!value) continue;
+      const bucket = byValue.get(value) || {
+        value,
+        dates: [],
+        quotes: [],
+        current: false,
+        superseded: false,
+      };
+      if (row.stated_at) bucket.dates.push(row.stated_at);
+      if (row.quote && !bucket.quotes.includes(row.quote)) bucket.quotes.push(row.quote);
+      if (row.is_current && row.status !== "superseded") bucket.current = true;
+      if (row.status === "superseded" || row.is_current === false) bucket.superseded = true;
+      byValue.set(value, bucket);
+    }
+    const values = [...byValue.values()].sort((a, b) => (a.dates[0] || "").localeCompare(b.dates[0] || ""));
+    if (!values.length) continue;
+    // Same value marked both current and historical after a second ingest:
+    // treat as one memory. Distinct values are a real change.
+    const unique = values.map((item) => {
+      const first = item.dates.slice().sort()[0];
+      return {
+        value: item.value,
+        date: prettyDate(first),
+        iso: first,
+        quote: item.quotes.find((q) => !/^Nice|^Congrats|^Sorry/i.test(q)) || item.quotes[0] || "",
+        current: item.current && !values.some((other) => other.value !== item.value && other.current && other.dates[0] > (item.dates[0] || "")),
+      };
+    });
+    if (unique.length > 1) {
+      const latestCurrent = [...unique].reverse().find((v) => v.current) || unique[unique.length - 1];
+      unique.forEach((v) => { v.current = v === latestCurrent; });
+    }
+    stories.push({ predicate, title: humanLabel(predicate), values: unique });
+  }
+  stories.sort((a, b) => (a.values[0]?.iso || "").localeCompare(b.values[0]?.iso || ""));
+  return stories;
+}
+
+function renderMemory(facts) {
+  const stories = collapseFacts(facts);
+  if (!stories.length) {
+    $("memList").innerHTML = `<p class="empty">Nothing remembered yet. Tell Backstory something, or try a memory scenario.</p>`;
+    return;
+  }
+  $("memList").innerHTML = stories.map((story) => {
+    const steps = story.values.map((step, i) => `
+      <div class="step" style="margin-bottom:${i === story.values.length - 1 ? 0 : 16}px">
+        <div class="rail"><span class="dot ${step.current ? "now" : ""}"></span></div>
+        <div>
+          <div class="val">${escapeHtml(prettyValue(story.predicate, step.value))}</div>
+          <div class="meta">${escapeHtml(step.date)}</div>
+          ${step.current ? `<div class="current-tag">Current</div>` : ""}
+          ${step.quote ? `<div class="quote">“${escapeHtml(clip(step.quote, 140))}”</div>` : ""}
+        </div>
+      </div>`).join("");
+    return `<section class="change"><h3>${escapeHtml(story.title)}</h3>${steps}</section>`;
+  }).join("");
+}
+
+function prettyValue(predicate, value) {
+  if (predicate === "works_at" && value === "unemployed") return "Left previous role";
+  return value;
+}
+
+function humanizeEvidence(facts) {
+  const stories = collapseFacts(facts);
+  if (!stories.length) return "";
+  return stories.map((story) => {
+    if (story.values.length === 1) {
+      const v = story.values[0];
+      return `You mentioned ${prettyValue(story.predicate, v.value).toLowerCase()}${v.date ? ` on ${v.date}` : ""}.`;
+    }
+    const first = story.values[0];
+    const last = story.values[story.values.length - 1];
+    return `You first mentioned ${prettyValue(story.predicate, first.value)} on ${first.date}. Later, this became ${prettyValue(story.predicate, last.value)} on ${last.date}.`;
+  }).join(" ");
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function clip(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+function openDrawer() {
+  $("drawer").classList.add("open");
+  $("scrim").classList.add("on");
+  $("app").classList.add("open-mem");
+  $("drawer").setAttribute("aria-hidden", "false");
+}
+function closeDrawer() {
+  $("drawer").classList.remove("open");
+  $("scrim").classList.remove("on");
+  $("app").classList.remove("open-mem");
+  $("drawer").setAttribute("aria-hidden", "true");
+}
+
+async function refreshMemory() {
+  const data = await fetch("/api/timeline").then((r) => r.json());
+  renderMemory(data.facts || []);
+}
+
+function renderAnswer(data) {
+  const abstain = data.action === "abstain";
+  const evidence = data.evidence || [];
+  lastEvidence = evidence;
+  let html = escapeHtml(data.text);
+  if (abstain) {
+    html += `<div class="abstain-note">Not guessing is part of how Backstory stays trustworthy.</div>`;
+  } else if (evidence.length) {
+    const n = new Set(evidence.map((e) => e.predicate + e.object_text)).size || evidence.length;
+    html += `<div><button class="evidence-toggle" type="button" data-open-mem="1">Based on ${n} ${n === 1 ? "memory" : "memories"}</button></div>`;
+    const summary = humanizeEvidence(evidence);
+    if (summary) html += `<div class="abstain-note">${escapeHtml(summary)}</div>`;
+  }
+  addMsg("bot", html, abstain ? "abstain" : "");
+}
+
+async function ask(question) {
+  addMsg("user", escapeHtml(question));
+  const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
+  setStatus("Searching memory…");
+  try {
+    const data = await post("/api/ask", { question });
+    thinking.remove();
+    renderAnswer(data);
+    await refreshMemory();
+  } catch (err) {
+    thinking.remove();
+    addMsg("bot", "I could not reach memory just then. Give it another moment.");
+    setStatus("");
+    return;
+  }
+  setStatus("");
+}
+
+async function remember(text) {
+  addMsg("user", escapeHtml(text));
+  setStatus("Remembering…");
+  try {
+    await post("/api/sessions", {
+      session_key: "live-" + Date.now(),
+      occurred_at: new Date().toISOString().slice(0, 19),
+      turns: [{ role: "user", content: text }],
+    });
+    addMsg("bot", "I’ll keep that.");
+    await refreshMemory();
+  } catch (err) {
+    addMsg("bot", "I could not store that just then.");
+  }
+  setStatus("");
+}
+
+function looksLikeQuestion(text) {
+  return /[?]|(^(what|where|when|why|how|who|can you|do you|did i|tell me)\b)/i.test(text.trim());
+}
+
+async function runDemo(key) {
+  if (busy) return;
+  busy = true;
+  $("send").disabled = true;
+  try {
+    await ensureDemo();
+    thread.innerHTML = "";
+    showThread();
+    const demo = DEMOS[key];
+    for (const line of demo.seed) {
+      const el = addMsg("user", escapeHtml(line.text));
+      el.insertAdjacentHTML("beforeend", `<div class="when">${line.when}</div>`);
+      await new Promise((r) => setTimeout(r, 180));
+    }
+    await ask(demo.ask);
+  } finally {
+    busy = false;
+    $("send").disabled = false;
+  }
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || busy) return;
+  input.value = "";
+  input.style.height = "auto";
+  busy = true;
+  $("send").disabled = true;
+  try {
+    if (looksLikeQuestion(text)) await ask(text);
+    else await remember(text);
+  } finally {
+    busy = false;
+    $("send").disabled = false;
+    input.focus();
+  }
+});
+
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 140) + "px";
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    $("form").requestSubmit();
+  }
+});
+
+$("scenarios").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-demo]");
+  if (btn) runDemo(btn.dataset.demo);
+});
+$("tryBtn").onclick = () => {
+  hero.hidden = false;
+  thread.hidden = true;
+  thread.innerHTML = "";
+};
+$("memBtn").onclick = async () => { await refreshMemory(); openDrawer(); };
+$("closeMem").onclick = closeDrawer;
+$("scrim").onclick = closeDrawer;
+thread.addEventListener("click", async (e) => {
+  if (e.target.dataset.openMem) {
+    await refreshMemory();
+    openDrawer();
+  }
+});
+
+refreshMemory().catch(() => {});
+
+const requestedDemo = new URLSearchParams(location.search).get("demo");
+if (requestedDemo && DEMOS[requestedDemo]) runDemo(requestedDemo);
+</script>
+</body>
+</html>

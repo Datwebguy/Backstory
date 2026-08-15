@@ -65,7 +65,10 @@ Then:
 python -m backstory.api.app
 ```
 
-Open http://127.0.0.1:8000 — one screen: remember, ask, evidence, timeline.
+Open http://127.0.0.1:8000 for the marketing landing page, or go straight to
+http://127.0.0.1:8000/app for the live product: remember, ask, evidence,
+timeline. The landing page's scenario cards link to `/app?demo=<name>`,
+which auto-runs that scenario on load.
 
 ## Evaluation
 

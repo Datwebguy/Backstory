@@ -132,17 +132,24 @@ def timeline(user_key: str = USER) -> dict:
 
 
 WEB_DIR = Path(__file__).resolve().parents[3] / "apps" / "web"
-INDEX = WEB_DIR / "index.html"
+LANDING = WEB_DIR / "index.html"
+APP_UI = WEB_DIR / "app.html"
+
+
+def _serve(path: Path) -> FileResponse:
+    if not path.exists():
+        raise HTTPException(500, f"UI file missing: {path}")
+    return FileResponse(path, headers={"Cache-Control": "no-store, max-age=0"})
 
 
 @app.get("/")
 def home() -> FileResponse:
-    if not INDEX.exists():
-        raise HTTPException(500, f"UI file missing: {INDEX}")
-    return FileResponse(
-        INDEX,
-        headers={"Cache-Control": "no-store, max-age=0"},
-    )
+    return _serve(LANDING)
+
+
+@app.get("/app")
+def app_ui() -> FileResponse:
+    return _serve(APP_UI)
 
 
 if WEB_DIR.exists():
