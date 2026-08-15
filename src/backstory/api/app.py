@@ -3,15 +3,16 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from starlette.middleware.sessions import SessionMiddleware
 
+from backstory.api import auth
 from backstory.config import get_settings
 from backstory.demo.load_demo import load
-from backstory.demo.scenarios import USER
 from backstory.engine.memory import MemoryEngine
 from backstory.hydra.client import HydraClient
 
@@ -28,6 +29,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+_settings = get_settings()
+app.add_middleware(SessionMiddleware, secret_key=_settings.session_secret, same_site="lax")
+app.state.oauth = auth.register_oauth(_settings)
+app.include_router(auth.router)
 
 
 class TurnIn(BaseModel):
@@ -36,7 +41,6 @@ class TurnIn(BaseModel):
 
 
 class SessionIn(BaseModel):
-    user_key: str = USER
     session_key: str
     occurred_at: str
     title: str = ""
@@ -45,13 +49,8 @@ class SessionIn(BaseModel):
 
 
 class AskIn(BaseModel):
-    user_key: str = USER
     question: str
     question_date: str = ""
-
-
-class DemoLoadIn(BaseModel):
-    user_key: str = USER
 
 
 @app.get("/api/health")
@@ -64,11 +63,11 @@ def health() -> dict:
 
 
 @app.post("/api/sessions")
-def create_session(body: SessionIn) -> dict:
+def create_session(body: SessionIn, user_key: str = Depends(auth.require_user)) -> dict:
     if not engine().hydra.ready():
         raise HTTPException(503, "HydraDB is not ready")
     report = engine().ingest_session(
-        user_key=body.user_key,
+        user_key=user_key,
         session_key=body.session_key,
         occurred_at=body.occurred_at,
         turns=[t.model_dump() for t in body.turns],
@@ -79,11 +78,11 @@ def create_session(body: SessionIn) -> dict:
 
 
 @app.post("/api/ask")
-def ask(body: AskIn) -> dict:
+def ask(body: AskIn, user_key: str = Depends(auth.require_user)) -> dict:
     if not engine().hydra.ready():
         raise HTTPException(503, "HydraDB is not ready")
     answer = engine().ask(
-        user_key=body.user_key,
+        user_key=user_key,
         question=body.question,
         question_date=body.question_date,
     )
@@ -108,15 +107,15 @@ def ask(body: AskIn) -> dict:
 
 
 @app.post("/api/demo/load")
-def load_demo(body: DemoLoadIn = DemoLoadIn()) -> dict:
+def load_demo(user_key: str = Depends(auth.require_user)) -> dict:
     if not engine().hydra.ready():
         raise HTTPException(503, "HydraDB is not ready")
-    load(engine(), user_key=body.user_key)
-    return {"ok": True, "user_key": body.user_key}
+    load(engine(), user_key=user_key)
+    return {"ok": True, "user_key": user_key}
 
 
 @app.get("/api/timeline")
-def timeline(user_key: str = USER) -> dict:
+def timeline(user_key: str = Depends(auth.require_user)) -> dict:
     facts = engine().retriever.facts_for_entities(
         engine().retriever.seed_entities("timeline history facts", user_key)
     )

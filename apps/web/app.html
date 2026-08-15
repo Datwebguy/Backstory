@@ -47,6 +47,10 @@
       --serif: var(--gelica);
     }
     * { box-sizing: border-box; }
+    /* Author display:flex/inline-flex rules tie with the UA [hidden]
+       rule at equal specificity and win on source order, so JS setting
+       .hidden = true silently does nothing without this. */
+    [hidden] { display: none !important; }
     html, body { height: 100%; }
     body {
       margin: 0;
@@ -101,6 +105,25 @@
       box-shadow: var(--shadow-subtle);
     }
     .ghost:hover { border-color: var(--orange); color: var(--sienna); background: var(--cream); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      background: var(--cream);
+      border: 1.5px solid var(--charcoal);
+      color: var(--charcoal);
+      padding: 11px 22px;
+      border-radius: var(--r-buttons);
+      font-family: var(--geist);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      box-shadow: var(--shadow-subtle);
+    }
+    .btn:hover { border-color: var(--orange); color: var(--sienna); }
+    .btn-lg { padding: 14px 28px; font-size: 16px; margin-top: 8px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; }
+    .user-chip img { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--charcoal); }
+    .user-chip span { font-family: var(--geist); font-size: 14px; color: var(--cocoa); }
     .stage {
       max-width: 880px;
       width: 100%;
@@ -163,7 +186,6 @@
       flex-direction: column;
       gap: 18px;
     }
-    .thread[hidden] { display: none; }
     .msg { max-width: 92%; animation: rise .35s ease; }
     .msg.user { align-self: flex-end; }
     .msg.user .bubble {
@@ -356,13 +378,25 @@
       </div>
       <div class="header-actions">
         <a class="ghost" href="/">← about backstory</a>
-        <button class="ghost" id="tryBtn" type="button">try a memory</button>
-        <button class="ghost" id="memBtn" type="button">what it remembers</button>
+        <button class="ghost" id="tryBtn" type="button" hidden>try a memory</button>
+        <button class="ghost" id="memBtn" type="button" hidden>what it remembers</button>
+        <div class="user-chip" id="userChip" hidden>
+          <img id="userAvatar" alt="" />
+          <span id="userName"></span>
+          <a class="ghost" id="signOutBtn" href="/auth/logout?next=/">sign out</a>
+        </div>
       </div>
     </header>
 
     <div class="stage">
-      <section class="hero" id="hero">
+      <section class="hero" id="signinGate" hidden>
+        <div class="hero-copy hero-copy--app">
+          <h2 class="app-kicker">sign in to try backstory</h2>
+          <p>Each Google account gets its own private memory — nobody sees anyone else's facts, including the demo scenarios you run.</p>
+          <a class="btn btn-lg" id="signInBtn" href="/auth/google/login?next=%2Fapp">sign in with Google →</a>
+        </div>
+      </section>
+      <section class="hero" id="hero" hidden>
         <div class="hero-copy hero-copy--app" id="try">
           <h2 class="app-kicker">pick a memory to explore</h2>
           <p>Or just start typing below — Backstory will ask or remember depending on what you say.</p>
@@ -391,7 +425,7 @@
 
     <div>
       <div class="status" id="status"></div>
-      <div class="composer-wrap">
+      <div class="composer-wrap" id="composerWrap" hidden>
         <form class="composer" id="form">
           <textarea id="input" rows="1" placeholder="Ask Backstory, or tell it something to remember."></textarea>
           <button class="send" id="send" type="submit" aria-label="Send">↑</button>
@@ -416,25 +450,42 @@
 const $ = (id) => document.getElementById(id);
 const thread = $("thread");
 const hero = $("hero");
+const signinGate = $("signinGate");
 const input = $("input");
 const statusEl = $("status");
 let demoLoaded = false;
 let lastEvidence = [];
 let busy = false;
 
-// Every visitor gets their own private, persistent memory: a random id
-// generated once and kept in this browser's localStorage. Nothing here
-// is shared across browsers/visitors, and nothing is sent to the server
-// until the first actual request.
-function getUserKey() {
-  let key = localStorage.getItem("backstory-user-key");
-  if (!key) {
-    key = "visitor-" + crypto.randomUUID();
-    localStorage.setItem("backstory-user-key", key);
+// Identity comes from the Google sign-in session cookie, never from the
+// client -- every request that needs a user_key is authenticated
+// server-side (Depends(auth.require_user)), so one visitor can never
+// read or write another visitor's memory by sending a different id.
+async function checkAuth() {
+  const me = await fetch("/api/me").then((r) => r.json());
+  if (!me.authenticated) {
+    const next = "/app" + location.search;
+    $("signInBtn").href = "/auth/google/login?next=" + encodeURIComponent(next);
+    signinGate.hidden = false;
+    hero.hidden = true;
+    thread.hidden = true;
+    $("tryBtn").hidden = true;
+    $("memBtn").hidden = true;
+    $("userChip").hidden = true;
+    $("composerWrap").hidden = true;
+    return false;
   }
-  return key;
+  signinGate.hidden = true;
+  hero.hidden = false;
+  $("tryBtn").hidden = false;
+  $("memBtn").hidden = false;
+  $("userChip").hidden = false;
+  $("composerWrap").hidden = false;
+  $("userName").textContent = me.name || me.email || "signed in";
+  if (me.picture) $("userAvatar").src = me.picture;
+  else $("userAvatar").style.display = "none";
+  return true;
 }
-const USER_KEY = getUserKey();
 
 const DEMOS = {
   work: {
@@ -526,7 +577,7 @@ async function post(url, body) {
 async function ensureDemo() {
   if (demoLoaded) return;
   setStatus("Loading sample conversations…");
-  await post("/api/demo/load", { user_key: USER_KEY });
+  await post("/api/demo/load", {});
   demoLoaded = true;
   setStatus("");
 }
@@ -641,7 +692,7 @@ function closeDrawer() {
 }
 
 async function refreshMemory() {
-  const data = await fetch("/api/timeline?user_key=" + encodeURIComponent(USER_KEY)).then((r) => r.json());
+  const data = await fetch("/api/timeline").then((r) => r.json());
   renderMemory(data.facts || []);
 }
 
@@ -666,7 +717,7 @@ async function ask(question) {
   const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
   setStatus("Searching memory…");
   try {
-    const data = await post("/api/ask", { question, user_key: USER_KEY });
+    const data = await post("/api/ask", { question });
     thinking.remove();
     renderAnswer(data);
     await refreshMemory();
@@ -684,7 +735,6 @@ async function remember(text) {
   setStatus("Remembering…");
   try {
     await post("/api/sessions", {
-      user_key: USER_KEY,
       session_key: "live-" + Date.now(),
       occurred_at: new Date().toISOString().slice(0, 19),
       turns: [{ role: "user", content: text }],
@@ -770,10 +820,13 @@ thread.addEventListener("click", async (e) => {
   }
 });
 
-refreshMemory().catch(() => {});
-
-const requestedDemo = new URLSearchParams(location.search).get("demo");
-if (requestedDemo && DEMOS[requestedDemo]) runDemo(requestedDemo);
+(async () => {
+  const signedIn = await checkAuth();
+  if (!signedIn) return;
+  await refreshMemory().catch(() => {});
+  const requestedDemo = new URLSearchParams(location.search).get("demo");
+  if (requestedDemo && DEMOS[requestedDemo]) runDemo(requestedDemo);
+})();
 </script>
 </body>
 </html>

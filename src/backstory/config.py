@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     retrieve_seed_k: int = 12
     evidence_fact_limit: int = 12
 
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    session_secret: str = "backstory-dev-session-secret-change-me"
+
 
 def get_settings() -> Settings:
     return Settings()
