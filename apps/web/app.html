@@ -422,6 +422,20 @@ let demoLoaded = false;
 let lastEvidence = [];
 let busy = false;
 
+// Every visitor gets their own private, persistent memory: a random id
+// generated once and kept in this browser's localStorage. Nothing here
+// is shared across browsers/visitors, and nothing is sent to the server
+// until the first actual request.
+function getUserKey() {
+  let key = localStorage.getItem("backstory-user-key");
+  if (!key) {
+    key = "visitor-" + crypto.randomUUID();
+    localStorage.setItem("backstory-user-key", key);
+  }
+  return key;
+}
+const USER_KEY = getUserKey();
+
 const DEMOS = {
   work: {
     seed: [
@@ -512,7 +526,7 @@ async function post(url, body) {
 async function ensureDemo() {
   if (demoLoaded) return;
   setStatus("Loading sample conversations…");
-  await post("/api/demo/load", {});
+  await post("/api/demo/load", { user_key: USER_KEY });
   demoLoaded = true;
   setStatus("");
 }
@@ -627,7 +641,7 @@ function closeDrawer() {
 }
 
 async function refreshMemory() {
-  const data = await fetch("/api/timeline").then((r) => r.json());
+  const data = await fetch("/api/timeline?user_key=" + encodeURIComponent(USER_KEY)).then((r) => r.json());
   renderMemory(data.facts || []);
 }
 
@@ -652,7 +666,7 @@ async function ask(question) {
   const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
   setStatus("Searching memory…");
   try {
-    const data = await post("/api/ask", { question });
+    const data = await post("/api/ask", { question, user_key: USER_KEY });
     thinking.remove();
     renderAnswer(data);
     await refreshMemory();
@@ -670,6 +684,7 @@ async function remember(text) {
   setStatus("Remembering…");
   try {
     await post("/api/sessions", {
+      user_key: USER_KEY,
       session_key: "live-" + Date.now(),
       occurred_at: new Date().toISOString().slice(0, 19),
       turns: [{ role: "user", content: text }],

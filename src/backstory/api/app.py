@@ -50,6 +50,10 @@ class AskIn(BaseModel):
     question_date: str = ""
 
 
+class DemoLoadIn(BaseModel):
+    user_key: str = USER
+
+
 @app.get("/api/health")
 def health() -> dict:
     hydra = HydraClient()
@@ -104,9 +108,11 @@ def ask(body: AskIn) -> dict:
 
 
 @app.post("/api/demo/load")
-def load_demo() -> dict:
-    load(engine())
-    return {"ok": True, "user_key": USER}
+def load_demo(body: DemoLoadIn = DemoLoadIn()) -> dict:
+    if not engine().hydra.ready():
+        raise HTTPException(503, "HydraDB is not ready")
+    load(engine(), user_key=body.user_key)
+    return {"ok": True, "user_key": body.user_key}
 
 
 @app.get("/api/timeline")
