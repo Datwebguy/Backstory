@@ -42,46 +42,59 @@
     }
     a { color: inherit; }
     @keyframes rise {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: none; }
+      0% { opacity: 0; transform: translateY(34px) scale(.97); }
+      65% { opacity: 1; transform: translateY(-4px) scale(1.006); }
+      100% { opacity: 1; transform: none; }
     }
     @keyframes floatA {
-      0%, 100% { transform: rotate(12deg) translateY(0); }
-      50% { transform: rotate(16deg) translateY(-6px); }
+      0%, 100% { transform: rotate(12deg) translateY(0) scale(1); }
+      50% { transform: rotate(20deg) translateY(-14px) scale(1.08); }
     }
     @keyframes floatB {
-      0%, 100% { transform: rotate(-10deg) translateY(0); }
-      50% { transform: rotate(-6deg) translateY(-5px); }
+      0%, 100% { transform: rotate(-10deg) translateY(0) scale(1); }
+      50% { transform: rotate(-2deg) translateY(-12px) scale(1.1); }
     }
     @keyframes floatC {
-      0%, 100% { transform: rotate(-6deg) translateY(0); }
-      50% { transform: rotate(-2deg) translateY(-7px); }
+      0%, 100% { transform: rotate(-6deg) translateY(0) scale(1); }
+      50% { transform: rotate(4deg) translateY(-16px) scale(1.06); }
     }
-    .hero-copy > * { animation: rise .6s ease both; }
+    @keyframes cardSway {
+      0%, 100% { transform: rotate(var(--rot, -4deg)); }
+      50% { transform: rotate(calc(var(--rot, -4deg) + 2.5deg)) translateY(-4px); }
+    }
+    @keyframes arrowWiggle {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-6deg); }
+    }
+    .hero-copy > * { animation: rise .8s cubic-bezier(.2,.8,.2,1) both; }
     .hero-copy > *:nth-child(1) { animation-delay: .02s; }
-    .hero-copy > *:nth-child(2) { animation-delay: .1s; }
-    .hero-copy > *:nth-child(3) { animation-delay: .18s; }
-    .hero-copy > *:nth-child(4) { animation-delay: .26s; }
-    .hero-art { animation: rise .7s ease .18s both; }
+    .hero-copy > *:nth-child(2) { animation-delay: .12s; }
+    .hero-copy > *:nth-child(3) { animation-delay: .22s; }
+    .hero-copy > *:nth-child(4) { animation-delay: .32s; }
+    .hero-art { animation: rise .9s cubic-bezier(.2,.8,.2,1) .22s both; }
     .btn, .cap-card, .pipe-step, .ghost {
-      transition: transform .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+      transition: transform .22s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, color .18s ease, box-shadow .22s ease;
     }
-    .btn:hover, .cap-card:hover { transform: translateY(-2px); }
-    .pipe-step:hover { transform: translateY(-3px); border-color: var(--orange); }
-    .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+    .btn:hover { transform: translateY(-3px) scale(1.03); }
+    .cap-card:hover { transform: translateY(-4px) scale(1.015); }
+    .pipe-step:hover { transform: translateY(-5px) scale(1.02); border-color: var(--orange); }
+    .reveal { opacity: 0; transform: translateY(32px) scale(.96); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
     .reveal.in { opacity: 1; transform: none; }
     .pipeline .reveal:nth-child(1) { transition-delay: 0s; }
-    .pipeline .reveal:nth-child(2) { transition-delay: .06s; }
-    .pipeline .reveal:nth-child(3) { transition-delay: .12s; }
-    .pipeline .reveal:nth-child(4) { transition-delay: .18s; }
-    .pipeline .reveal:nth-child(5) { transition-delay: .24s; }
+    .pipeline .reveal:nth-child(2) { transition-delay: .08s; }
+    .pipeline .reveal:nth-child(3) { transition-delay: .16s; }
+    .pipeline .reveal:nth-child(4) { transition-delay: .24s; }
+    .pipeline .reveal:nth-child(5) { transition-delay: .32s; }
     .caps .reveal:nth-child(1) { transition-delay: 0s; }
-    .caps .reveal:nth-child(2) { transition-delay: .08s; }
-    .caps .reveal:nth-child(3) { transition-delay: .16s; }
-    .caps .reveal:nth-child(4) { transition-delay: .24s; }
-    .sticker--bolt { animation: floatA 4.5s ease-in-out infinite; }
-    .sticker--sparkle { animation: floatB 5.5s ease-in-out infinite; }
-    .sticker--node { animation: floatC 5s ease-in-out infinite; }
+    .caps .reveal:nth-child(2) { transition-delay: .1s; }
+    .caps .reveal:nth-child(3) { transition-delay: .2s; }
+    .caps .reveal:nth-child(4) { transition-delay: .3s; }
+    .sticker--bolt { animation: floatA 3.4s ease-in-out infinite; transform-origin: center; }
+    .sticker--sparkle { animation: floatB 4s ease-in-out infinite; transform-origin: center; }
+    .sticker--node { animation: floatC 3.7s ease-in-out infinite; transform-origin: center; }
+    .fact-card { animation: cardSway 5s ease-in-out infinite; }
+    .fact-card.fact-card--2 { animation-duration: 6s; animation-delay: .4s; }
+    .hand-arrow { animation: arrowWiggle 2.6s ease-in-out infinite; transform-origin: 80% 20%; }
     .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
     header.site {
       display: flex;

@@ -108,13 +108,14 @@
       padding: 8px 20px 24px;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       min-height: 0;
     }
     .hero {
       padding: 32px 8px 0;
       animation: rise .5s ease;
     }
-    .hero-copy--app { max-width: 640px; }
+    .hero-copy--app { max-width: 640px; width: 100%; margin: 0 auto; }
     .app-kicker {
       font-family: var(--serif);
       font-size: 26px;
@@ -162,6 +163,7 @@
       flex-direction: column;
       gap: 18px;
     }
+    .thread[hidden] { display: none; }
     .msg { max-width: 92%; animation: rise .35s ease; }
     .msg.user { align-self: flex-end; }
     .msg.user .bubble {
