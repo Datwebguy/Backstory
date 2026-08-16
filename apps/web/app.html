@@ -382,7 +382,6 @@
         <button class="ghost" id="memBtn" type="button" hidden>what it remembers</button>
         <div class="user-chip" id="userChip" hidden>
           <img id="userAvatar" alt="" />
-          <span id="userName"></span>
           <a class="ghost" id="signOutBtn" href="/auth/logout?next=/">sign out</a>
         </div>
       </div>
@@ -391,8 +390,8 @@
     <div class="stage">
       <section class="hero" id="signinGate" hidden>
         <div class="hero-copy hero-copy--app">
-          <h2 class="app-kicker">sign in to try backstory</h2>
-          <p>Each Google account gets its own private memory — nobody sees anyone else's facts, including the demo scenarios you run.</p>
+          <h2 class="app-kicker">sign in to continue</h2>
+          <p>Your account has its own private, secure memory space.</p>
           <a class="btn btn-lg" id="signInBtn" href="/auth/google/login?next=%2Fapp">sign in with Google →</a>
         </div>
       </section>
@@ -481,7 +480,7 @@ async function checkAuth() {
   $("memBtn").hidden = false;
   $("userChip").hidden = false;
   $("composerWrap").hidden = false;
-  $("userName").textContent = me.name || me.email || "signed in";
+  $("userAvatar").title = me.name || me.email || "";
   if (me.picture) $("userAvatar").src = me.picture;
   else $("userAvatar").style.display = "none";
   return true;
@@ -506,8 +505,8 @@ const DEMOS = {
   },
   school: {
     seed: [
-      { role: "user", text: "I upgraded my old 10-gallon tank, which has my betta fish, Bubbles.", when: "April 1" },
-      { role: "user", text: "I added decorations to the 20-gallon tank.", when: "April 1" },
+      { role: "user", text: "I upgraded my old 10 gallon tank, which has my betta fish, Bubbles.", when: "April 1" },
+      { role: "user", text: "I added decorations to the 20 gallon tank.", when: "April 1" },
     ],
     ask: "What was the name of my secondary school?",
   },
