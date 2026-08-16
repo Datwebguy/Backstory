@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     session_secret: str = "backstory-dev-session-secret-change-me"
+    session_https_only: bool = False
+
+    # Only needed when the package is pip-installed (not run from the
+    # source tree), where __file__-relative path math can't find
+    # apps/web/ anymore. Empty = fall back to the relative-path guess.
+    backstory_web_dir: str = ""
 
 
 def get_settings() -> Settings:

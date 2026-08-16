@@ -117,6 +117,41 @@ python -m backstory.eval.run_compare
 Writes `runs/lme/strat12/compare.json` (also unofficial contains-match; see
 `docs/LONGMEMEVAL_VALIDATION.md` for the last measured numbers and caveats).
 
+## Deploy (Fly.io)
+
+Live demo: https://backstory.fly.dev/ (landing) / https://backstory.fly.dev/app
+(product — requires Google sign-in).
+
+HydraDB's `graph-node` process only binds IPv4 (`0.0.0.0`), but Fly's private
+6PN network between separate apps is IPv6-only — confirmed empirically
+(`/proc/net/tcp6` on a standalone HydraDB machine shows nothing listening on
+the 6PN address except Fly's own SSH agent). So this does **not** deploy as
+two Fly apps talking over `.internal` DNS the way `docker-compose.yml` runs
+two containers locally. Instead `deploy/combined.Dockerfile` builds one image
+(`ghcr.io/hydra-db/hydradb:latest` + apt-installed Python) that runs both
+`graph-node` and `uvicorn` in the same machine over `127.0.0.1`, via
+`deploy/combined-entrypoint.sh` (starts graph-node, polls `/readyz`, then
+execs uvicorn). One Fly volume at `/data` holds both HydraDB's store/cache
+and the sidecar SQLite file. Local dev is unaffected — `docker-compose.yml`
+still runs HydraDB as its own container, since Docker's bridge network
+doesn't have this IPv4/IPv6 mismatch.
+
+```powershell
+flyctl apps create backstory
+flyctl volumes create backstory_data --app backstory --region iad --size 3
+flyctl secrets set --app backstory `
+  SESSION_SECRET=(python -c "import secrets; print(secrets.token_urlsafe(32))") `
+  SESSION_HTTPS_ONLY=true `
+  GOOGLE_CLIENT_ID=... `
+  GOOGLE_CLIENT_SECRET=...
+flyctl deploy --config fly.toml --app backstory
+```
+
+Google OAuth needs `https://<app>.fly.dev/auth/google/callback` added as an
+additional authorized redirect URI (Google Cloud Console allows more than
+one, so `http://127.0.0.1:8000/auth/google/callback` for local dev can stay
+registered alongside it).
+
 ## How HydraDB is used
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

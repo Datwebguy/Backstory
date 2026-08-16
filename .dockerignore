@@ -1,0 +1,9 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+runs
+data/lme/*.json
+.env
+node_modules

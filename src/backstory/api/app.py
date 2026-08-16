@@ -30,7 +30,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 _settings = get_settings()
-app.add_middleware(SessionMiddleware, secret_key=_settings.session_secret, same_site="lax")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=_settings.session_secret,
+    same_site="lax",
+    https_only=_settings.session_https_only,
+)
 app.state.oauth = auth.register_oauth(_settings)
 app.include_router(auth.router)
 
@@ -136,7 +141,11 @@ def timeline(user_key: str = Depends(auth.require_user)) -> dict:
     }
 
 
-WEB_DIR = Path(__file__).resolve().parents[3] / "apps" / "web"
+WEB_DIR = (
+    Path(_settings.backstory_web_dir)
+    if _settings.backstory_web_dir
+    else Path(__file__).resolve().parents[3] / "apps" / "web"
+)
 LANDING = WEB_DIR / "index.html"
 APP_UI = WEB_DIR / "app.html"
 
