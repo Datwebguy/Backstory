@@ -20,4 +20,9 @@ except Exception:
   sleep 1
 done
 
-exec uvicorn backstory.api.app:app --host 0.0.0.0 --port 8000
+# Fly's edge terminates TLS and forwards plain HTTP internally; without
+# --proxy-headers uvicorn reports every request as http, so authlib
+# builds an http:// OAuth redirect_uri that won't match what's
+# registered in Google Cloud Console as https://.
+exec uvicorn backstory.api.app:app --host 0.0.0.0 --port 8000 \
+  --proxy-headers --forwarded-allow-ips='*'
