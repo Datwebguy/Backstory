@@ -1,25 +1,71 @@
-# Backstory
+<p align="center">
+  <img src="docs/images/landing.png" alt="Backstory landing page" width="820" />
+</p>
 
-Graph-native long-term memory for conversational agents.
+<h1 align="center">Backstory</h1>
 
-Hack Hydra Track 03 — Memory and Context Retrieval.
+<p align="center">
+  Graph native long term memory for conversational agents, built on HydraDB.
+</p>
 
-Tell it something once. Come back later. It still knows what changed, and it
-will say so when the history does not contain the answer.
+<p align="center">
+  <a href="https://backstory.fly.dev/">Live demo</a> ·
+  <a href="#evaluation">Evaluation</a> ·
+  <a href="#deploy">Deploy</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a>
+</p>
 
-HydraDB OSS (`graph-node`) is the source of truth for facts, entities,
-SUPERSEDES, CONTRADICTS, and evidence quotes. A SQLite sidecar only allocates
-integer ids and holds rebuildable indexes. Hydra Cloud is not used.
+<p align="center">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-informational" />
+  <img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-blue" />
+  <img alt="Hackathon" src="https://img.shields.io/badge/Hack%20Hydra-Track%2003-orange" />
+</p>
 
-This repository does **not** claim a LongMemEval-S score. Commands below are
-the ones we actually ship.
+Backstory is a memory layer for AI assistants. Tell it something once, come
+back weeks later, and it still knows what changed, what got superseded, and
+when it genuinely does not have an answer. It was built for Hack Hydra, Track
+03, Memory and Context Retrieval, and every fact it stores lives as a real
+node and edge in HydraDB, not a buried transcript or a nearest neighbor
+guess.
+
+This repository does not claim an official LongMemEval S score. The commands
+below are the ones this project actually ships and can back up.
+
+## Contents
+
+- [How it works](#how-it-works)
+- [Requirements](#requirements)
+- [Run HydraDB locally](#run-hydradb-locally)
+- [Install and smoke test](#install-and-smoke-test)
+- [Engine tests](#engine-tests)
+- [Try the product](#try-the-product)
+- [Evaluation](#evaluation)
+- [Deploy](#deploy)
+- [Architecture](#architecture)
+- [License](#license)
+
+## How it works
+
+Every message goes through the same pipeline. The engine extracts subject,
+predicate, and object atoms from what was said, resolves entities against
+existing ones by exact key or alias, versions the result so a new fact can
+supersede or contradict an older one instead of silently overwriting it, and
+retrieves answers through a real graph traversal rather than a similarity
+search. When the evidence is missing or the question rests on something that
+was never actually said, it abstains instead of guessing.
+
+HydraDB, specifically its `graph-node` process, is the source of truth for
+users, sessions, facts, entities, and the supersede and contradict edges
+between them. A small SQLite sidecar exists only to allocate integer ids and
+hold a rebuildable lexical index. It is never allowed to answer a question on
+its own, and Hydra Cloud is not used anywhere in this project.
 
 ## Requirements
 
 - Docker Desktop
-- Python 3.11+
+- Python 3.11 or newer
 
-## Run HydraDB
+## Run HydraDB locally
 
 ```powershell
 cd backstory
@@ -28,24 +74,26 @@ docker compose up -d
 
 Wait until `http://127.0.0.1:9090/readyz` returns 200.
 
-## Install and smoke-test HydraDB
+## Install and smoke test
 
 ```powershell
 python -m pip install -e ".[dev]"
 python -m backstory.tools.smoke_hydradb
 ```
 
-That script writes real nodes/edges, queries current vs historical state,
-checks SUPERSEDES and CONTRADICTS, confirms `IS NULL` and undirected patterns
-are rejected, then can be re-run with `--persist-only` after a container
-restart.
+The smoke script writes real nodes and edges, queries current versus
+historical state, checks that supersede and contradict edges behave
+correctly, and confirms that unsupported Cypher patterns such as `IS NULL`
+and undirected matches are rejected by the parser. It can be rerun after a
+container restart to confirm the data actually persisted:
 
 ```powershell
 docker compose restart hydradb
 python -m backstory.tools.smoke_hydradb --persist-only
 ```
 
-If smoke fails, fix HydraDB integration. Do not fall back to Postgres.
+If the smoke test fails, the fix belongs in the HydraDB integration. This
+project does not fall back to Postgres or any other store.
 
 ## Engine tests
 
@@ -53,88 +101,87 @@ If smoke fails, fix HydraDB integration. Do not fall back to Postgres.
 pytest -q
 ```
 
-## Four demos
+## Try the product
 
 ```powershell
 python -m backstory.demo.load_demo
-```
-
-Then:
-
-```powershell
 python -m backstory.api.app
 ```
 
-Open http://127.0.0.1:8000 for the marketing landing page, or go straight to
-http://127.0.0.1:8000/app for the live product: remember, ask, evidence,
-timeline. The landing page's scenario cards link to `/app?demo=<name>`,
-which auto-runs that scenario on load.
+Open `http://127.0.0.1:8000` for the marketing landing page, or go straight
+to `http://127.0.0.1:8000/app` for the live product: ask questions, tell it
+things to remember, inspect the evidence behind an answer, and browse the
+timeline of how a fact changed over time. The landing page's scenario cards
+link to `/app?demo=<name>`, which signs you in and runs that scenario
+automatically. Every account gets its own private memory. Nobody sees another
+account's facts, including the demo scenarios.
 
 ## Evaluation
 
-Smallest offline official-shaped run (no 115k haystacks, no OpenAI):
+The smallest offline run that matches the official shape, with no large
+haystacks and no OpenAI key required:
 
 ```powershell
 python -m backstory.eval.run_smoke_eval
 ```
 
-LongMemEval oracle (download the cleaned files yourself into `data/lme/`,
-from https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned).
-Everything below is driven by `backstory.eval.run_official`, which ingests
-each instance's haystack sessions in date order, asks Backstory, writes
-`{question_id, hypothesis}` jsonl, and (if `OPENAI_API_KEY` is set) invokes
-the official judge itself:
+The full LongMemEval oracle set can be downloaded from the
+[cleaned dataset on Hugging Face](https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned)
+into `data/lme/`. Everything below is driven by `backstory.eval.run_official`,
+which ingests each instance's sessions in date order, asks Backstory, writes
+a `{question_id, hypothesis}` jsonl file, and, if `OPENAI_API_KEY` is set,
+calls the official judge itself.
 
 ```powershell
-# One question, ingest+ask only, no judge call:
+# One question, ingest and ask only, no judge call
 python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --ids 6aeb4375 --skip-official-judge
 
-# A stratified 12-question slice (2 per official type) across the full 500:
+# A stratified 12 question slice, two per official type, drawn from the full 500
 python -m backstory.eval.slice_lme --dataset data/lme/longmemeval_oracle.json --per-type 2 --out data/lme/oracle_strat12.json
 python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12 --skip-official-judge
 
-# Same slice, official judge (needs OPENAI_API_KEY; scores gpt-4o-2024-08-06 yes/no per item):
+# The same slice, scored by the official judge (needs OPENAI_API_KEY)
 python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12
 
-# Full LongMemEval-S 500 (slow, needs OPENAI_API_KEY):
+# The full LongMemEval S set of 500 questions (slow, needs OPENAI_API_KEY)
 python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --limit 0
 ```
 
-Each run writes `runs/lme/<out-dir>/hypotheses.jsonl`, per-question
-`traces/<id>.json` (retrieval + answer), and `summary_unofficial.json`
-(a loose token-overlap diagnostic — **not** the scored metric). The judge's
-own output lands at `<hyp_file>.eval-results-gpt-4o` next to the hyp file,
-written by `vendor/longmemeval/evaluate_qa.py` (the official scorer;
-requires `OPENAI_API_KEY`, do not substitute the internal diagnostic for it).
+Each run writes `runs/lme/<out-dir>/hypotheses.jsonl`, a per-question trace
+of retrieval and reasoning, and `summary_unofficial.json`, which is a loose
+token overlap diagnostic and not the scored metric. The judge's own output
+lands next to the hypothesis file, written by
+`vendor/longmemeval/evaluate_qa.py`, the official scorer. It requires
+`OPENAI_API_KEY`, and the internal diagnostic is never a substitute for it.
 
-Backstory vs. a naive-graph ablation vs. a session-RAG baseline on the same
-12-question slice:
+To compare Backstory against a naive graph ablation and a session level
+retrieval baseline on the same slice:
 
 ```powershell
 python -m backstory.eval.run_compare
 ```
 
-Writes `runs/lme/strat12/compare.json` (also unofficial contains-match; see
-`docs/LONGMEMEVAL_VALIDATION.md` for the last measured numbers and caveats).
+This writes `runs/lme/strat12/compare.json`. See
+[docs/LONGMEMEVAL_VALIDATION.md](docs/LONGMEMEVAL_VALIDATION.md) for the last
+measured numbers and their caveats.
 
-## Deploy (Fly.io)
+## Deploy
 
-Live demo: https://backstory.fly.dev/ (landing) / https://backstory.fly.dev/app
-(product — requires Google sign-in).
+A live instance runs at [backstory.fly.dev](https://backstory.fly.dev/), with
+the product itself at `/app` behind Google sign in.
 
-HydraDB's `graph-node` process only binds IPv4 (`0.0.0.0`), but Fly's private
-6PN network between separate apps is IPv6-only — confirmed empirically
-(`/proc/net/tcp6` on a standalone HydraDB machine shows nothing listening on
-the 6PN address except Fly's own SSH agent). So this does **not** deploy as
-two Fly apps talking over `.internal` DNS the way `docker-compose.yml` runs
-two containers locally. Instead `deploy/combined.Dockerfile` builds one image
-(`ghcr.io/hydra-db/hydradb:latest` + apt-installed Python) that runs both
-`graph-node` and `uvicorn` in the same machine over `127.0.0.1`, via
-`deploy/combined-entrypoint.sh` (starts graph-node, polls `/readyz`, then
-execs uvicorn). One Fly volume at `/data` holds both HydraDB's store/cache
-and the sidecar SQLite file. Local dev is unaffected — `docker-compose.yml`
-still runs HydraDB as its own container, since Docker's bridge network
-doesn't have this IPv4/IPv6 mismatch.
+HydraDB's `graph-node` process only binds to IPv4, but Fly's private network
+between separate apps is IPv6 only. This was confirmed directly by reading
+`/proc/net/tcp6` on a standalone HydraDB machine, which showed nothing
+listening on the private address except Fly's own SSH agent. Because of
+that, this project does not deploy as two Fly apps talking over internal DNS
+the way `docker compose` runs two containers locally. Instead,
+`deploy/combined.Dockerfile` builds a single image, the official HydraDB
+image with Python installed on top, that runs both `graph-node` and
+`uvicorn` in the same machine over `127.0.0.1`, orchestrated by
+`deploy/combined-entrypoint.sh`. One Fly volume holds both HydraDB's data and
+the sidecar's SQLite file. Local development is unaffected, since Docker's
+bridge network does not have this mismatch.
 
 ```powershell
 flyctl apps create backstory
@@ -147,20 +194,19 @@ flyctl secrets set --app backstory `
 flyctl deploy --config fly.toml --app backstory
 ```
 
-Google OAuth needs `https://<app>.fly.dev/auth/google/callback` added as an
-additional authorized redirect URI (Google Cloud Console allows more than
-one, so `http://127.0.0.1:8000/auth/google/callback` for local dev can stay
-registered alongside it).
+Google sign in requires `https://<app>.fly.dev/auth/google/callback` to be
+added as an authorized redirect URI in Google Cloud Console, alongside the
+local one used for development.
 
-## How HydraDB is used
+## Architecture
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-If HydraDB were replaced by a vector store we would lose current-vs-historical
-lookup, SUPERSEDES lineage, CONTRADICTS as structure, and constraint-aware
-abstention that is not “nearest neighbor ≠ empty.”
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full, live validated
+design. If HydraDB were replaced with a vector store, this project would
+lose current versus historical lookup, supersede lineage, contradiction as a
+first class structure, and constraint aware abstention that is not simply
+"nearest neighbor returned nothing."
 
 ## License
 
-MIT for Backstory. HydraDB is AGPL-3.0 and runs as a separate Docker service.
-See NOTICE.
+Backstory is MIT licensed. HydraDB is AGPL 3.0 and runs as a separate
+service. See [NOTICE](NOTICE) for details.
