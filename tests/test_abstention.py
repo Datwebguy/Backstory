@@ -133,3 +133,37 @@ def test_loosened_matching_still_abstains_on_unrelated_facts():
     ]
     decision = decide("What was the name of our previous hosting vendor?", facts)
     assert decision.action == "abstain"
+
+
+def test_why_question_includes_superseded_history_and_reasons():
+    # The decision-history demo answered "I do not have enough
+    # information to explain why Postgres was chosen" even though the
+    # graph held both the superseded MongoDB preference and the
+    # requirement behind the switch. Token matching reached the current
+    # Postgres facts only, so the answerer never saw the why.
+    current = _fact(fact_id=30, predicate="decided", object_text="Postgres",
+                    qualifiers="", quote="We standardised on Postgres.")
+    superseded = _fact(fact_id=31, predicate="prefers", object_text="MongoDB",
+                       is_current=False, status="superseded", qualifiers="",
+                       quote="We're planning to use MongoDB.")
+    superseded.superseded_by = 30
+    reason = _fact(fact_id=32, predicate="needs",
+                   object_text="strong consistency for billing records",
+                   qualifiers="", quote="We need strong consistency for billing records.")
+
+    decision = decide("Why did we choose Postgres?", [current, superseded, reason])
+    assert decision.action == "answer"
+    ids = {f.fact_id for f in decision.facts}
+    assert 31 in ids, "superseded predecessor should be included as history"
+    assert 32 in ids, "requirement fact should be included for a why question"
+
+
+def test_history_inclusion_does_not_widen_an_unrelated_question():
+    # Guard: history is pulled in only via facts already judged
+    # relevant, so an unrelated question must still abstain rather than
+    # sweeping in every reason-style fact.
+    reason = _fact(fact_id=40, predicate="needs",
+                   object_text="strong consistency for billing records",
+                   qualifiers="", quote="We need strong consistency.")
+    decision = decide("What was the name of our previous hosting vendor?", [reason])
+    assert decision.action == "abstain"

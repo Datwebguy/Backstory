@@ -46,6 +46,13 @@ CONSTRAINT_RE = re.compile(
 
 NOW_RE = re.compile(r"\b(now|currently|current|today)\b", re.I)
 PREV_RE = re.compile(r"\b(previously|before|used to|last year|ago)\b", re.I)
+WHY_RE = re.compile(r"\b(why|reason|because|rationale)\b", re.I)
+
+# Predicates that carry the justification behind a choice. A "why"
+# question needs these even though they rarely share vocabulary with the
+# thing being asked about: "why did we choose Postgres" has no token in
+# common with "needs strong consistency for billing records".
+REASON_PREDICATES = {"needs", "decided", "prefers", "requires", "wants"}
 
 # The heuristic extractor always emits "name"; an LLM extractor is free
 # to phrase the predicate differently (has_name, full_name, ...) despite
@@ -60,6 +67,7 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
     relevant = [f for f in facts if _relevant(question, f)]
     if not relevant:
         return Decision("abstain", "no_relevant_facts", facts)
+    relevant = _add_supporting_history(question, relevant, facts)
 
     constraint = _asked_constraint(question)
     if constraint and not any(_satisfies_constraint(f, constraint) for f in relevant):
@@ -134,6 +142,44 @@ def _tokens_overlap(q_tokens: set[str], b_tokens: set[str]) -> bool:
             if qt[:_STEM_PREFIX] == bt[:_STEM_PREFIX]:
                 return True
     return False
+
+
+def _add_supporting_history(
+    question: str,
+    relevant: list[RetrievedFact],
+    facts: list[RetrievedFact],
+) -> list[RetrievedFact]:
+    """Pull in the context a relevant fact points at, without widening the topic.
+
+    Two additions, both anchored to facts already judged relevant, so
+    this cannot introduce an unrelated subject:
+
+    1. Whatever a relevant fact replaced. "Why did we choose Postgres"
+       matched the current Postgres facts by name, but the answer lives
+       in the MongoDB preference that Postgres superseded. Following
+       SUPERSEDES backwards is the thing a graph can do that a snippet
+       store cannot, and it is what the knowledge-update and
+       decision-history cases are actually about.
+    2. For a "why" question only, the requirement style facts that
+       justify a choice. These share no vocabulary with the question by
+       nature, so token matching will never reach them.
+    """
+    chosen = {f.fact_id: f for f in relevant}
+    relevant_ids = set(chosen)
+
+    for fact in facts:
+        if fact.fact_id in chosen:
+            continue
+        if fact.superseded_by is not None and fact.superseded_by in relevant_ids:
+            chosen[fact.fact_id] = fact
+
+    if WHY_RE.search(question):
+        for fact in facts:
+            if fact.fact_id not in chosen and fact.predicate in REASON_PREDICATES:
+                chosen[fact.fact_id] = fact
+
+    # Preserve the caller's ordering (current first, then by date).
+    return [f for f in facts if f.fact_id in chosen]
 
 
 def _relevant(question: str, fact: RetrievedFact) -> bool:
