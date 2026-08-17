@@ -367,11 +367,50 @@
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: none; }
     }
+    .lbl-short { display: none; }
+
     @media (max-width: 720px) {
       .scenarios { grid-template-columns: 1fr; }
-      header { padding: 16px 16px 8px; }
-      .hero { padding-top: 20px; }
+      header { padding: 14px 14px 8px; gap: 8px; }
+      .hero { padding-top: 16px; }
       .msg { max-width: 100%; }
+      .stage { padding: 8px 14px 20px; }
+      .composer { padding: 10px 14px 16px; gap: 8px; }
+    }
+
+    /* Phones. Three controls plus an avatar do not fit beside the
+       wordmark at full size, and the old layout wrapped them on top of
+       it. Shorter labels and tighter controls keep the header on one
+       row instead. */
+    @media (max-width: 560px) {
+      .lbl-full { display: none; }
+      .lbl-short { display: inline; }
+      header { padding: 12px 12px 6px; gap: 6px; }
+      /* The wordmark yields first if a device renders the controls wider
+         than expected, so the actions can never be pushed off screen. */
+      .brand { font-size: 17px; gap: 6px; min-width: 0; overflow: hidden; }
+      .brand-mark { width: 21px; height: 21px; flex: none; }
+      .header-actions { gap: 6px; flex: none; }
+      .ghost {
+        padding: 7px 11px;
+        font-size: 13px;
+        border-width: 1.25px;
+        white-space: nowrap;
+      }
+      .user-chip { gap: 6px; }
+      .user-chip img { width: 22px; height: 22px; }
+      .app-kicker { font-size: 22px; }
+      .hero-copy--app p { font-size: 15px; }
+      .scenario { padding: 12px 14px 10px; }
+      /* 16px keeps iOS from zooming the whole page in on focus, and the
+         taller box stops a two line placeholder being clipped. */
+      .composer textarea {
+        font-size: 16px;
+        min-height: 60px;
+        padding: 12px 14px;
+      }
+      .send { width: 46px; height: 46px; }
+      .drawer { width: 100%; }
     }
     @media (min-width: 1100px) {
       .app.open-mem .stage { margin-right: 420px; }
@@ -392,11 +431,17 @@
         backstory
       </a>
       <div class="header-actions">
-        <button class="ghost new-chat" id="tryBtn" type="button" hidden>+ new chat</button>
-        <button class="ghost" id="memBtn" type="button" hidden>what it remembers</button>
+        <button class="ghost new-chat" id="tryBtn" type="button" hidden>
+          <span class="lbl-full">+ new chat</span><span class="lbl-short">+ new</span>
+        </button>
+        <button class="ghost" id="memBtn" type="button" hidden>
+          <span class="lbl-full">what it remembers</span><span class="lbl-short">memory</span>
+        </button>
         <div class="user-chip" id="userChip" hidden>
           <img id="userAvatar" alt="" />
-          <a class="ghost" id="signOutBtn" href="/auth/logout?next=/">sign out</a>
+          <a class="ghost" id="signOutBtn" href="/auth/logout?next=/">
+            <span class="lbl-full">sign out</span><span class="lbl-short">out</span>
+          </a>
         </div>
       </div>
     </header>
@@ -922,6 +967,19 @@ $("form").addEventListener("submit", async (e) => {
     input.focus();
   }
 });
+
+// The full placeholder needs three lines in a phone width box, and the
+// third was being clipped, so the prompt read "...something to" with the
+// point of the sentence missing. Shorter copy on small screens instead
+// of a taller box that would eat the conversation area.
+const PLACEHOLDER_FULL = "Ask Backstory, or tell it something to remember.";
+const PLACEHOLDER_SHORT = "Ask, or tell me something";
+const smallScreen = window.matchMedia("(max-width: 560px)");
+function syncPlaceholder() {
+  input.placeholder = smallScreen.matches ? PLACEHOLDER_SHORT : PLACEHOLDER_FULL;
+}
+syncPlaceholder();
+smallScreen.addEventListener("change", syncPlaceholder);
 
 input.addEventListener("input", () => {
   input.style.height = "auto";
