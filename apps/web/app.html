@@ -794,9 +794,18 @@ function greetingReply() {
 }
 
 const CHITCHAT = ["thanks", "thank you", "thx", "ty", "ok", "okay", "cool", "nice", "great", "awesome", "lol", "haha", "bye", "goodbye", "see you", "good night", "sure", "alright", "got it", "np", "no problem"];
+const FIRST_PERSON_RE = /\b(i|i'm|im|my|me|mine|myself)\b/;
 function looksLikeChitchat(text) {
-  const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
-  return CHITCHAT.includes(t);
+  const t = text.trim().toLowerCase().replace(/[.!?]+$/, "");
+  if (!t || looksLikeQuestion(text)) return false;
+  if (CHITCHAT.includes(t)) return true;
+  // A short reaction with no first-person pronoun (good, nice one, not
+  // bad, sounds good) has nothing in it worth writing to memory. Listing
+  // every possible reaction word by word does not scale, so anything
+  // this short and this generic is treated as a reaction by default
+  // rather than only the handful of words above.
+  const words = t.split(/\s+/).filter(Boolean);
+  return words.length > 0 && words.length <= 3 && !FIRST_PERSON_RE.test(t);
 }
 function chitchatReply(text) {
   const t = text.trim().toLowerCase();
