@@ -166,6 +166,31 @@ This writes `runs/lme/strat12/compare.json`. See
 [docs/LONGMEMEVAL_VALIDATION.md](docs/LONGMEMEVAL_VALIDATION.md) for the last
 measured numbers and their caveats.
 
+### BEAM
+
+[BEAM](https://github.com/mohammadtavakoli78/BEAM) probes ten long term
+memory abilities over multi session conversations, seven of which map
+directly onto mechanisms this project implements: abstention,
+contradiction resolution, knowledge update, multi session reasoning,
+temporal reasoning, event ordering, and preference following. Each
+conversation in the smallest tier is roughly 125,000 tokens spread over
+three dated sessions, which is the shape Backstory is built for.
+
+```powershell
+python -m backstory.eval.beam_download --tier 100K --ids 1,2,3
+python -m backstory.eval.run_beam --tier 100K
+```
+
+The runner ingests each conversation as dated sessions, asks all twenty
+probing questions, and scores answers with an LLM against BEAM's own
+published per-question rubrics. Those results are reported as "judged
+against BEAM rubrics" and are deliberately not called official BEAM
+scores: BEAM's `src/evaluation/compute_metrics.py` additionally requires
+sentence-transformers and a LangChain model. Per-question records,
+including each rubric and verdict, are written to
+`runs/beam/beam_<tier>_hypotheses.jsonl` so the official scorer can be
+run over them later.
+
 ## Deploy
 
 A live instance runs at [backstory.fly.dev](https://backstory.fly.dev/), with

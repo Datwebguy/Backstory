@@ -14,6 +14,9 @@ hydradb-data/cache/
 hydradb-data/*.log
 data/lme/*.json
 data/lme/*.jsonl
+# BEAM conversations are third party data, fetched by
+# backstory.eval.beam_download rather than vendored here.
+data/beam/
 runs/
 *.log
 node_modules/

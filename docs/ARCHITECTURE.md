@@ -214,8 +214,32 @@ trajectories, which is a different system rather than an additional
 evaluation of this one. LongMemEval-S remains the benchmark that matches
 what this project actually does.
 
-BEAM is reference only: it informed the event-ordering shape of demo D,
-but is not run here.
+BEAM is wired up and run on a slice (`backstory.eval.run_beam`). Unlike
+LME-V2 it is the same problem this project addresses: multi session
+conversational memory. Seven of its ten probed abilities map onto
+mechanisms implemented here, which makes it a closer fit than
+LongMemEval's answer-recall framing:
+
+| BEAM ability | Backstory mechanism |
+|---|---|
+| `abstention` | `decide()` abstention gates |
+| `contradiction_resolution` | `CONTRADICTS` edges, both directions |
+| `knowledge_update` | `SUPERSEDES` lineage, `is_current` |
+| `multi_session_reasoning` | ABOUT fan-in across sessions |
+| `temporal_reasoning` | `valid_from` / `valid_until`, `as_of` |
+| `event_ordering` | `stated_at` / `event_at` ordering |
+| `preference_following` | `fact_kind=preference` |
+
+The remaining three (`information_extraction`, `instruction_following`,
+`summarization`) exercise extraction and generation quality rather than
+graph structure.
+
+Scores from that runner are labelled "judged against BEAM rubrics", not
+as official BEAM scores: it uses BEAM's own published per-question
+rubrics with an LLM judge, rather than BEAM's
+`src/evaluation/compute_metrics.py`, which additionally requires
+sentence-transformers and a LangChain model. Per-question records are
+written out so the official scorer can be run over them later.
 
 ## 11. Four demo flows
 

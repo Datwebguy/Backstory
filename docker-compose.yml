@@ -1,6 +1,27 @@
 # Official HydraDB OSS graph-node for local Backstory development.
 # Image and env vars follow https://github.com/hydra-db/hydradb README
 # "Run with Docker". Named volumes avoid Windows bind-mount permission issues.
+#
+# Storage backend: CLOUD_PROVIDER defaults to `local`, which is fine for the
+# test suite, the smoke checks and the demos, all of which are short lived.
+# It is NOT suitable for sustained write load: HydraDB's manifest garbage
+# collector needs conditional puts that LocalFileSystem does not implement,
+# so writes eventually fail permanently and the store has to be deleted.
+# See docs/KNOWN_ISSUES.md and hydra-db/hydradb#81.
+#
+# For long runs (for example the BEAM evaluation) point this at an
+# S3 compatible bucket instead by creating a .env beside this file with:
+#
+#   CLOUD_PROVIDER=aws
+#   AWS_BUCKET=<your dev bucket>
+#   AWS_ENDPOINT_URL_S3=https://fly.storage.tigris.dev
+#   AWS_REGION=auto
+#   AWS_ACCESS_KEY_ID=<key>
+#   AWS_SECRET_ACCESS_KEY=<secret>
+#
+# docker compose reads that .env automatically. Use a *different* bucket
+# from the deployed app: two graph nodes writing one bucket will fight
+# over the same writer lease.
 services:
   hydradb:
     image: ghcr.io/hydra-db/hydradb:latest
@@ -14,8 +35,13 @@ services:
       - "8443:8443"
       - "9090:9090"
     environment:
-      CLOUD_PROVIDER: local
+      CLOUD_PROVIDER: ${CLOUD_PROVIDER:-local}
       LOCAL_PATH: /data/store
+      AWS_BUCKET: ${AWS_BUCKET:-}
+      AWS_ENDPOINT_URL_S3: ${AWS_ENDPOINT_URL_S3:-}
+      AWS_REGION: ${AWS_REGION:-auto}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       GRAPH_NAMESPACE: default
       GRAPH_ID: default
       GRAPH_CELL_ID: cell-0

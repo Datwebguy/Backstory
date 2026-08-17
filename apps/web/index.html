@@ -261,7 +261,7 @@
       <div class="hero-grid">
         <div class="hero-copy">
           <h1>your ai remembers<br>what came before.</h1>
-          <p class="lede">Ask about something you said weeks ago, revisit how a decision <span class="marker-highlight">actually<svg viewBox="0 0 60 8" preserveAspectRatio="none"><path d="M1 5.5C10 2 20 7 30 4S50 1 59 4.5" stroke="#ff6f1e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span> changed, or see what Backstory remembers — stored as versioned graph facts on HydraDB, not a buried transcript.</p>
+          <p class="lede">Ask about something you said weeks ago, revisit how a decision <span class="marker-highlight">actually<svg viewBox="0 0 60 8" preserveAspectRatio="none"><path d="M1 5.5C10 2 20 7 30 4S50 1 59 4.5" stroke="#ff6f1e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span> changed, or see what Backstory remembers. Everything is kept as versioned graph facts on HydraDB, not a buried transcript.</p>
           <div class="hero-ctas">
             <a class="btn btn-lg" href="/app">open backstory →</a>
             <a class="btn btn-lg" href="/app#try">try a memory scenario</a>
@@ -279,8 +279,8 @@
           <div class="fact-stack">
             <div class="fact-card" style="--rot:-5deg">
               <div class="fact-kicker">remembered</div>
-              <div class="fact-field"><label>relation</label><span>sister</span></div>
-              <div class="fact-field"><label>name</label><span>Ada</span></div>
+              <div class="fact-field"><label>role</label><span>tech lead</span></div>
+              <div class="fact-field"><label>name</label><span>Priya</span></div>
               <div class="fact-field"><label>since</label><span>Jan 12</span></div>
             </div>
             <div class="fact-card fact-card--2" style="--rot:4deg">
@@ -308,11 +308,11 @@
     <section class="block" id="how">
       <p class="kicker">how it works</p>
       <h2 class="section-title">every message becomes a graph fact, not just tokens in a transcript.</h2>
-      <p class="section-sub">Backstory's engine runs the same five stage pipeline on every turn, backed by HydraDB as the graph of record — no vector only "closest chunk" guessing.</p>
+      <p class="section-sub">Backstory's engine runs the same five stage pipeline on every turn, backed by HydraDB as the graph of record. There is no vector only "closest chunk" guessing.</p>
       <div class="pipeline">
         <div class="pipe-step reveal"><div class="n">01</div><strong>extract</strong><span>Pull subject / predicate / object atoms from what was said.</span></div>
-        <div class="pipe-step reveal"><div class="n">02</div><strong>resolve</strong><span>Match entities by exact key or alias — Sam ≠ Samuel unless told so.</span></div>
-        <div class="pipe-step reveal"><div class="n">03</div><strong>version</strong><span>New facts SUPERSEDE old ones, or CONTRADICT them — history is kept, not overwritten.</span></div>
+        <div class="pipe-step reveal"><div class="n">02</div><strong>resolve</strong><span>Match entities by exact key or alias. Sam ≠ Samuel unless told so.</span></div>
+        <div class="pipe-step reveal"><div class="n">03</div><strong>version</strong><span>New facts SUPERSEDE old ones, or CONTRADICT them. History is kept, never overwritten.</span></div>
         <div class="pipe-step reveal"><div class="n">04</div><strong>retrieve</strong><span>Graph traversal from seed entities, aware of current state.</span></div>
         <div class="pipe-step reveal"><div class="n">05</div><strong>abstain</strong><span>No matching evidence, or a false premise in the question? It says so.</span></div>
       </div>
@@ -321,16 +321,16 @@
     <section class="block" id="capabilities">
       <p class="kicker">what it remembers</p>
       <h2 class="section-title">four ways long term memory actually gets tested.</h2>
-      <p class="section-sub">Each of these is a real scenario you can run against the live engine — not a mockup.</p>
+      <p class="section-sub">Each of these is a real scenario you can run against the live engine, not a mockup.</p>
       <div class="caps">
         <a class="cap-card reveal" href="/app?demo=work">
           <strong>Changed plans</strong>
-          <span>A person's work history changes across several conversations — Backstory tracks the update and keeps the "before" on record.</span>
+          <span>A person's work history changes across several conversations. Backstory tracks the update and keeps the earlier answer on record.</span>
           <span class="go">run this scenario →</span>
         </a>
         <a class="cap-card reveal" href="/app?demo=ada">
           <strong>Remembered across conversations</strong>
-          <span>Facts about one person — a sister named Ada — arrive scattered across separate sessions and get synthesized into one answer.</span>
+          <span>Facts about one colleague arrive scattered across separate sessions and get synthesized into a single answer.</span>
           <span class="go">run this scenario →</span>
         </a>
         <a class="cap-card reveal" href="/app?demo=school">
@@ -340,7 +340,7 @@
         </a>
         <a class="cap-card reveal" href="/app?demo=thinkpad">
           <strong>Decision history</strong>
-          <span>Trace how a purchase decision evolved — MacBook, then Windows, then a ThinkPad — and why.</span>
+          <span>Trace how a database decision evolved from MongoDB to Postgres, and why.</span>
           <span class="go">run this scenario →</span>
         </a>
       </div>

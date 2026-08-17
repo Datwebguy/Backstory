@@ -18,6 +18,10 @@ from backstory.hydra.client import HydraClient
 from backstory.sidecar.store import SidecarStore
 from backstory.sidecar.embeddings import lexical_embed
 
+# Per turn character budget for the LLM extraction window. See the note
+# where the window is built in ingest_session.
+_WINDOW_CHARS_PER_TURN = 700
+
 
 @dataclass
 class IngestReport:
@@ -61,7 +65,14 @@ class MemoryEngine:
             message_id = self.mutator.write_message(
                 session_id, user_key, session_key, role, idx, occurred_at, content
             )
-            window.append(f"{role.upper()}: {content}")
+            # Cap each turn's contribution to the extraction window. Real
+            # conversations (and benchmark haystacks) contain very long
+            # assistant turns, and an uncapped six turn window makes every
+            # extraction prompt grow without bound: measured at roughly one
+            # turn per minute on a 130k token conversation, versus seconds
+            # once bounded. Durable facts appear early in a turn, so the
+            # head of each message is what extraction actually needs.
+            window.append(f"{role.upper()}: {content[:_WINDOW_CHARS_PER_TURN]}")
             if len(window) > 6:
                 window = window[-6:]
             atoms: list[Atom] = []

@@ -84,37 +84,38 @@ def scenario_a_knowledge_update() -> list[dict[str, Any]]:
 
 
 def scenario_b_distributed() -> list[dict[str, Any]]:
-    """LME multi-session: facts about Ada arrive far apart."""
+    """LME multi-session: facts about one colleague arrive far apart."""
     return [
         {
             "session_key": "s03",
             "occurred_at": "2023-01-12T09:00:00",
-            "title": "Family",
-            "turns": [{"role": "user", "content": "My sister is Ada."}],
+            "title": "Atlas migration lead",
+            "turns": [
+                {"role": "user", "content": "Priya is the tech lead on the Atlas migration."}
+            ],
             "atoms": [
                 {
-                    "subject": "user",
-                    "predicate": "has_sister",
-                    "object_text": "Ada",
-                    "object_entity": "Ada",
-                    "object_type": "person",
+                    "subject": "Priya",
+                    "subject_type": "person",
+                    "predicate": "works_as",
+                    "object_text": "tech lead on the Atlas migration",
                     "fact_kind": "state",
-                    "aliases": ["my sister"],
+                    "aliases": ["she"],
                 }
             ],
         },
         {
             "session_key": "s11",
             "occurred_at": "2023-03-08T09:00:00",
-            "title": "Ada in London",
-            "turns": [{"role": "user", "content": "Ada lives in London."}],
+            "title": "Priya in Berlin",
+            "turns": [{"role": "user", "content": "Priya is based in the Berlin office."}],
             "atoms": [
                 {
-                    "subject": "Ada",
+                    "subject": "Priya",
                     "subject_type": "person",
-                    "predicate": "lives_in",
-                    "object_text": "London",
-                    "object_entity": "London",
+                    "predicate": "located_in",
+                    "object_text": "Berlin office",
+                    "object_entity": "Berlin office",
                     "object_type": "place",
                     "fact_kind": "state",
                 }
@@ -123,16 +124,16 @@ def scenario_b_distributed() -> list[dict[str, Any]]:
         {
             "session_key": "s24",
             "occurred_at": "2023-07-02T09:00:00",
-            "title": "Medicine",
-            "turns": [{"role": "user", "content": "She's studying medicine."}],
+            "title": "Billing API rewrite",
+            "turns": [{"role": "user", "content": "She now owns the billing API rewrite."}],
             "atoms": [
                 {
-                    "subject": "Ada",
+                    "subject": "Priya",
                     "subject_type": "person",
-                    "predicate": "studies",
-                    "object_text": "medicine",
+                    "predicate": "owns",
+                    "object_text": "billing API rewrite",
                     "fact_kind": "state",
-                    "aliases": ["she", "my sister"],
+                    "aliases": ["she"],
                 }
             ],
         },
@@ -140,46 +141,51 @@ def scenario_b_distributed() -> list[dict[str, Any]]:
 
 
 def scenario_c_abstention() -> list[dict[str, Any]]:
-    """Official LME abstention shape: tanks exist, 30-gallon does not."""
+    """Official LME abstention shape, in a professional setting.
+
+    Same mechanism as LongMemEval's own abstention example: two sized
+    things are on record and the question asks about a third size that
+    is not. Only the surface content differs.
+    """
     return [
         {
             "session_key": "s07",
             "occurred_at": "2023-04-01T12:00:00",
-            "title": "Fish tanks",
+            "title": "Environment sizing",
             "turns": [
                 {
                     "role": "user",
-                    "content": "I upgraded my old 10-gallon tank, which has my betta fish, Bubbles.",
+                    "content": "We moved staging onto a 16 GB instance last week.",
                 },
                 {
                     "role": "user",
-                    "content": "I added decorations to the 20-gallon tank to create more hiding places for the fish.",
+                    "content": "Production still runs on the 32 GB instance.",
                 },
             ],
             "atoms": [
                 {
                     "subject": "user",
                     "predicate": "owns",
-                    "object_text": "10-gallon tank",
-                    "object_entity": "10-gallon tank",
+                    "object_text": "16 GB instance",
+                    "object_entity": "16 GB instance",
                     "object_type": "thing",
                     "fact_kind": "state",
-                    "qualifiers": "capacity=10;unit=gal",
+                    "qualifiers": "capacity=16;unit=gb",
                 },
                 {
                     "subject": "user",
                     "predicate": "owns",
-                    "object_text": "20-gallon tank",
-                    "object_entity": "20-gallon tank",
+                    "object_text": "32 GB instance",
+                    "object_entity": "32 GB instance",
                     "object_type": "thing",
                     "fact_kind": "state",
-                    "qualifiers": "capacity=20;unit=gal",
+                    "qualifiers": "capacity=32;unit=gb",
                 },
                 {
-                    "subject": "Bubbles",
+                    "subject": "staging",
                     "subject_type": "thing",
-                    "predicate": "lives_in",
-                    "object_text": "10-gallon tank",
+                    "predicate": "located_in",
+                    "object_text": "16 GB instance",
                     "fact_kind": "state",
                 },
             ],
@@ -193,14 +199,16 @@ def scenario_d_decision() -> list[dict[str, Any]]:
         {
             "session_key": "s02",
             "occurred_at": "2023-01-20T18:00:00",
-            "title": "MacBook plan",
-            "turns": [{"role": "user", "content": "I'm planning to buy a MacBook."}],
+            "title": "MongoDB plan",
+            "turns": [
+                {"role": "user", "content": "We're planning to use MongoDB for the events store."}
+            ],
             "atoms": [
                 {
                     "subject": "user",
                     "predicate": "prefers",
-                    "object_text": "MacBook",
-                    "object_entity": "MacBook",
+                    "object_text": "MongoDB",
+                    "object_entity": "MongoDB",
                     "object_type": "thing",
                     "fact_kind": "preference",
                 }
@@ -209,14 +217,14 @@ def scenario_d_decision() -> list[dict[str, Any]]:
         {
             "session_key": "s10",
             "occurred_at": "2023-03-01T18:00:00",
-            "title": "Windows instead",
-            "turns": [{"role": "user", "content": "I think I'll get Windows instead."}],
+            "title": "Postgres instead",
+            "turns": [{"role": "user", "content": "I think we'll go with Postgres instead."}],
             "atoms": [
                 {
                     "subject": "user",
                     "predicate": "prefers",
-                    "object_text": "Windows laptop",
-                    "object_entity": "Windows laptop",
+                    "object_text": "Postgres",
+                    "object_entity": "Postgres",
                     "object_type": "thing",
                     "fact_kind": "preference",
                     "update_of": "prefers",
@@ -226,13 +234,15 @@ def scenario_d_decision() -> list[dict[str, Any]]:
         {
             "session_key": "s17b",
             "occurred_at": "2023-04-09T18:00:00",
-            "title": "Coding need",
-            "turns": [{"role": "user", "content": "I need something good for coding."}],
+            "title": "Consistency requirement",
+            "turns": [
+                {"role": "user", "content": "We need strong consistency for billing records."}
+            ],
             "atoms": [
                 {
                     "subject": "user",
                     "predicate": "needs",
-                    "object_text": "good for coding",
+                    "object_text": "strong consistency for billing records",
                     "fact_kind": "state",
                 }
             ],
@@ -240,23 +250,23 @@ def scenario_d_decision() -> list[dict[str, Any]]:
         {
             "session_key": "s29",
             "occurred_at": "2023-06-01T18:00:00",
-            "title": "ThinkPad",
-            "turns": [{"role": "user", "content": "I bought a ThinkPad."}],
+            "title": "Postgres chosen",
+            "turns": [{"role": "user", "content": "We standardised on Postgres."}],
             "atoms": [
                 {
                     "subject": "user",
-                    "predicate": "bought",
-                    "object_text": "ThinkPad",
-                    "object_entity": "ThinkPad",
+                    "predicate": "decided",
+                    "object_text": "Postgres",
+                    "object_entity": "Postgres",
                     "object_type": "thing",
-                    "fact_kind": "event",
+                    "fact_kind": "decision",
                     "event_at": "2023-06-01T18:00:00",
                 },
                 {
                     "subject": "user",
                     "predicate": "owns",
-                    "object_text": "ThinkPad",
-                    "object_entity": "ThinkPad",
+                    "object_text": "Postgres",
+                    "object_entity": "Postgres",
                     "object_type": "thing",
                     "fact_kind": "state",
                 },
@@ -286,15 +296,15 @@ QUESTIONS = [
     },
     {
         "id": "demo-b",
-        "question": "What do I know about Ada?",
+        "question": "What do I know about Priya?",
         "question_date": "2023-07-15T00:00:00",
-        "expect_contains": ["London", "medicine"],
+        "expect_contains": ["Berlin", "billing"],
         "expect_action": "answer",
         "capability": "multi-session",
     },
     {
         "id": "demo-c",
-        "question": "How many fish are there in my 30-gallon tank?",
+        "question": "How many services run on the 64 GB instance?",
         "question_date": "2023-07-15T00:00:00",
         "expect_contains": ["don't have enough information"],
         "expect_action": "abstain",
@@ -302,15 +312,15 @@ QUESTIONS = [
     },
     {
         "id": "demo-d",
-        "question": "Why did I choose the ThinkPad?",
+        "question": "Why did we choose Postgres?",
         "question_date": "2023-07-15T00:00:00",
-        "expect_contains": ["ThinkPad"],
+        "expect_contains": ["Postgres"],
         "expect_action": "answer",
         "capability": "decision-history",
     },
     {
-        "id": "demo-school",
-        "question": "What was the name of my secondary school?",
+        "id": "demo-vendor",
+        "question": "What was the name of our previous hosting vendor?",
         "question_date": "2023-07-15T00:00:00",
         "expect_contains": ["don't have enough information"],
         "expect_action": "abstain",

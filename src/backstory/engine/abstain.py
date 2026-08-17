@@ -37,7 +37,10 @@ class Decision:
 
 
 CONSTRAINT_RE = re.compile(
-    r"(\d+(?:\.\d+)?)\s*[- ]?(gallon|gal|minute|minutes|month|months|year|years|bike|bikes)?",
+    r"(\d+(?:\.\d+)?)\s*[- ]?"
+    r"(gallon|gal|gb|tb|mb|core|cores|cpu|cpus|node|nodes|seat|seats|"
+    r"licence|licences|license|licenses|replica|replicas|"
+    r"minute|minutes|month|months|year|years|bike|bikes)?",
     re.I,
 )
 

@@ -410,7 +410,7 @@
       <section class="hero" id="hero" hidden>
         <div class="hero-copy hero-copy--app" id="try">
           <h2 class="app-kicker">pick a memory to explore</h2>
-          <p>Or just start typing below — Backstory will ask or remember depending on what you say. A new chat clears this screen, not your memory: everything you have told Backstory is still there.</p>
+          <p>Or just start typing below. Backstory will ask or remember depending on what you say. A new chat clears this screen, not your memory: everything you have told Backstory is still there.</p>
           <div class="scenarios" id="scenarios">
             <button class="scenario" data-demo="work" type="button">
               <strong>Changed plans</strong>
@@ -418,7 +418,7 @@
             </button>
             <button class="scenario" data-demo="ada" type="button">
               <strong>Remembered across conversations</strong>
-              <span>Information about Ada is spread across multiple sessions.</span>
+              <span>Information about a colleague is spread across multiple sessions.</span>
             </button>
             <button class="scenario" data-demo="school" type="button">
               <strong>Knows when it does not know</strong>
@@ -426,7 +426,7 @@
             </button>
             <button class="scenario" data-demo="thinkpad" type="button">
               <strong>Decision history</strong>
-              <span>Trace how a purchase decision evolved.</span>
+              <span>Trace how a technology decision evolved.</span>
             </button>
           </div>
         </div>
@@ -509,38 +509,40 @@ const DEMOS = {
   },
   ada: {
     seed: [
-      { role: "user", text: "My sister is Ada.", when: "January 12" },
-      { role: "user", text: "Ada lives in London.", when: "March 8" },
-      { role: "user", text: "She's studying medicine.", when: "July 2" },
+      { role: "user", text: "Priya is the tech lead on the Atlas migration.", when: "January 12" },
+      { role: "user", text: "Priya is based in the Berlin office.", when: "March 8" },
+      { role: "user", text: "She now owns the billing API rewrite.", when: "July 2" },
     ],
-    ask: "What do I know about Ada?",
+    ask: "What do I know about Priya?",
   },
   school: {
     seed: [
-      { role: "user", text: "I upgraded my old 10 gallon tank, which has my betta fish, Bubbles.", when: "April 1" },
-      { role: "user", text: "I added decorations to the 20 gallon tank.", when: "April 1" },
+      { role: "user", text: "We moved staging onto a 16 GB instance last week.", when: "April 1" },
+      { role: "user", text: "Production still runs on the 32 GB instance.", when: "April 1" },
     ],
-    ask: "What was the name of my secondary school?",
+    ask: "How many services run on the 64 GB instance?",
   },
   thinkpad: {
     seed: [
-      { role: "user", text: "I'm planning to buy a MacBook.", when: "January 20" },
-      { role: "user", text: "I think I'll get Windows instead.", when: "March 1" },
-      { role: "user", text: "I need something good for coding.", when: "April 9" },
-      { role: "user", text: "I bought a ThinkPad.", when: "June 1" },
+      { role: "user", text: "We're planning to use MongoDB for the events store.", when: "January 20" },
+      { role: "user", text: "I think we'll go with Postgres instead.", when: "March 1" },
+      { role: "user", text: "We need strong consistency for billing records.", when: "April 9" },
+      { role: "user", text: "We standardised on Postgres.", when: "June 1" },
     ],
-    ask: "Why did I choose the ThinkPad?",
+    ask: "Why did we choose Postgres?",
   },
 };
 
 const LABELS = {
   works_at: "Work",
   lives_in: "Where you live",
+  located_in: "Location",
+  works_as: "Role",
   prefers: "Preference",
-  owns: "Things you own",
-  has_sister: "Family",
+  owns: "Owns",
+  decided: "Decision",
   bought: "Purchase",
-  needs: "What you needed",
+  needs: "Requirement",
   studies: "Studies",
   has: "Has",
   name: "Name",
