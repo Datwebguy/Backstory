@@ -6,13 +6,29 @@ implemented in src/client/http.rs:
   POST /v1/graphs/{graph_id}/query
   Authorization: Bearer <token>
   X-Graph-Namespace: <namespace>
-  {"cell_id","query","parameters","consistency","bookmark"}
+  {"cell_id","query","parameters","consistency","bookmark","query_id"}
+
+`query_id` doubles as the durable write deduplication key. It is
+optional in the wire format, but omitting it is unsafe: graph-node then
+derives one from a process local counter (`http-query-{n}` in
+src/client/http.rs), which restarts at zero on every process restart.
+Against a persistent object store those keys are still on record from
+the previous process, so a restarted node reuses `http-query-14` for a
+different edge and the write fails with
+
+  idempotency key conflict for create request key
+  http-query-14.unwind-create-matched...: this key already stored a
+  result for a different edge
+
+which surfaces to callers as a plain 500. This client therefore always
+sends a unique `query_id`.
 
 A listening port is not proof. Callers must assert on returned rows.
 """
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -120,6 +136,10 @@ class HydraClient:
             "query": cypher,
             "parameters": parameters or {},
             "consistency": consistency,
+            # Unique per request. See the module docstring: letting
+            # graph-node generate this from its restart-local counter
+            # causes idempotency conflicts against a persistent store.
+            "query_id": f"backstory-{uuid.uuid4()}",
         }
         chosen = bookmark
         if chosen is None and use_last_bookmark:
