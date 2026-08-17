@@ -87,6 +87,55 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
     return Decision("answer", "sufficient", relevant)
 
 
+# Words a person may reasonably use for the same stored concept. Exact
+# token matching alone fails the obvious cases: a fact stored as
+# "birthday" is invisible to a question asking "birthdate", and an
+# LLM-chosen predicate like born_in is invisible to "when was I born".
+_SYNONYM_GROUPS = (
+    {"birthday", "birthdate", "birth", "born", "dob"},
+    {"name", "called", "named"},
+    {"job", "work", "works", "worked", "employer", "role", "title"},
+    {"live", "lives", "lived", "living", "based", "located", "location"},
+    {"email", "mail", "address"},
+    {"phone", "mobile", "number"},
+)
+
+_STEM_PREFIX = 5
+
+
+def _expand_synonyms(tokens: set[str]) -> set[str]:
+    expanded = set(tokens)
+    for group in _SYNONYM_GROUPS:
+        if expanded & group:
+            expanded |= group
+    return expanded
+
+
+def _tokens_overlap(q_tokens: set[str], b_tokens: set[str]) -> bool:
+    """Relevance match that tolerates synonyms and word endings.
+
+    Exact intersection first, then the same comparison after synonym
+    expansion, then a shared word stem so plurals and inflections
+    (instance/instances, birthday/birthdate) line up. Kept deliberately
+    conservative: a shared prefix must be at least _STEM_PREFIX
+    characters, so short words cannot collide by accident.
+    """
+    if q_tokens & b_tokens:
+        return True
+    expanded = _expand_synonyms(q_tokens)
+    if expanded & b_tokens:
+        return True
+    for qt in expanded:
+        if len(qt) < _STEM_PREFIX:
+            continue
+        for bt in b_tokens:
+            if len(bt) < _STEM_PREFIX:
+                continue
+            if qt[:_STEM_PREFIX] == bt[:_STEM_PREFIX]:
+                return True
+    return False
+
+
 def _relevant(question: str, fact: RetrievedFact) -> bool:
     q = norm_text(question)
     blob = norm_text(
@@ -101,8 +150,10 @@ def _relevant(question: str, fact: RetrievedFact) -> bool:
         for t in q.split()
         if len(t.strip("?.,!;:")) > 2 and t.strip("?.,!;:") not in stop
     }
-    b_tokens = {t.strip("?.,!;:") for t in blob.split()}
-    if q_tokens & b_tokens:
+    # Predicates are snake_case, so born_in has to become {born, in} for a
+    # question asking "when was I born" to reach it.
+    b_tokens = {t.strip("?.,!;:") for t in blob.replace("_", " ").split()}
+    if _tokens_overlap(q_tokens, b_tokens):
         return True
     # commute / duration style
     if "commute" in q and "commute" in blob:

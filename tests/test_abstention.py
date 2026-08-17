@@ -93,3 +93,43 @@ def test_false_premise_unmentioned_person_abstains():
     )
     assert decision.action == "abstain"
     assert decision.reason.startswith("false_premise_entity")
+
+
+def test_synonym_and_stem_relevance():
+    # Reported live: "MY BIRTHDAY IS MARCH 12" stored fine, but asking
+    # "WHAT IS MY BIRTHDATE?" abstained, because relevance was an exact
+    # token intersection and birthdate != birthday. Same class of bug
+    # made an LLM-chosen born_in predicate unreachable from "when was I
+    # born". Matching now expands synonyms and compares word stems.
+    birthday = _fact(
+        fact_id=10,
+        predicate="has_birthday",
+        object_text="March 12",
+        qualifiers="",
+        quote="MY BIRTHDAY IS MARCH 12",
+    )
+    for question in ("What is my birthdate?", "When is my birthday?", "What is my date of birth?"):
+        assert decide(question, [birthday]).action == "answer", question
+
+    born = _fact(
+        fact_id=11,
+        predicate="born_in",
+        object_text="1995",
+        qualifiers="",
+        quote="I WAS BORN IN 1995",
+    )
+    for question in ("When was I born?", "What year was I born?"):
+        assert decide(question, [born]).action == "answer", question
+
+
+def test_loosened_matching_still_abstains_on_unrelated_facts():
+    # The guard on the change above: relevance is looser, not absent.
+    # A question about something never mentioned must still refuse.
+    facts = [
+        _fact(fact_id=20, predicate="works_at", object_text="Company B",
+              qualifiers="", quote="I joined Company B."),
+        _fact(fact_id=21, predicate="has_birthday", object_text="March 12",
+              qualifiers="", quote="MY BIRTHDAY IS MARCH 12"),
+    ]
+    decision = decide("What was the name of our previous hosting vendor?", facts)
+    assert decision.action == "abstain"
