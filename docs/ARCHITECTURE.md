@@ -204,7 +204,18 @@ which writes official-shaped JSON + `{question_id, hypothesis}` jsonl from the
 four demos. That command is the smallest reproducible eval we can execute
 offline.
 
-LME-V2 is not implemented. BEAM is reference only.
+LME-V2 is deliberately not implemented. Despite the name it is not a
+newer LongMemEval-S: it evaluates memory over multimodal *web and
+enterprise agent trajectories* (up to 500 trajectories and 115M tokens
+per haystack), scoring abilities such as workflow knowledge and
+environment gotchas. Backstory is a conversational memory layer, so
+running it would mean first building a web agent to produce those
+trajectories, which is a different system rather than an additional
+evaluation of this one. LongMemEval-S remains the benchmark that matches
+what this project actually does.
+
+BEAM is reference only: it informed the event-ordering shape of demo D,
+but is not run here.
 
 ## 11. Four demo flows
 
