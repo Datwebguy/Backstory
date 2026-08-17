@@ -4,6 +4,25 @@ primary_region = "iad"
 [build]
   dockerfile = "deploy/combined.Dockerfile"
 
+# HydraDB's manifest garbage collector needs conditional puts
+# (put_opts with PutMode::Update), which the LocalFileSystem object
+# store does not implement -- upstream hydra-db/hydradb#81. Under
+# CLOUD_PROVIDER=local that makes GC fail a few minutes into sustained
+# writes and eventually every write fails, recoverable only by deleting
+# the store. S3-compatible backends do implement conditional puts, so
+# this points at Tigris (Fly's S3-compatible storage) instead, which is
+# also the disaggregated-storage architecture HydraDB is designed for.
+# Overrides ENV CLOUD_PROVIDER=local from the Dockerfile.
+#
+# The credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+# AWS_ENDPOINT_URL_S3, AWS_REGION) are set as Fly secrets by
+# `fly storage create`. AWS_BUCKET has to be set here because Fly names
+# its variable BUCKET_NAME, and object_store's AmazonS3Builder::from_env
+# only reads variables prefixed AWS_ (verified in its builder.rs).
+[env]
+  CLOUD_PROVIDER = "aws"
+  AWS_BUCKET = "backstory-store"
+
 [http_service]
   internal_port = 8000
   force_https = true

@@ -42,6 +42,7 @@ below are the ones this project actually ships and can back up.
 - [Evaluation](#evaluation)
 - [Deploy](#deploy)
 - [Architecture](#architecture)
+- [Known issues](docs/KNOWN_ISSUES.md)
 - [License](#license)
 
 ## How it works
@@ -197,6 +198,15 @@ flyctl deploy --config fly.toml --app backstory
 Google sign in requires `https://<app>.fly.dev/auth/google/callback` to be
 added as an authorized redirect URI in Google Cloud Console, alongside the
 local one used for development.
+
+Object storage is Tigris, Fly's S3-compatible store, created with
+`fly storage create`. This is deliberate rather than incidental:
+HydraDB's manifest garbage collector needs conditional puts that the
+local filesystem backend does not implement, which makes writes fail
+permanently under sustained load. See
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for the upstream citation,
+the call path that makes `CLOUD_PROVIDER=aws` work from the published
+image, and how this was verified.
 
 ## Architecture
 
