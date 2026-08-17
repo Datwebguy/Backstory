@@ -784,9 +784,17 @@ function looksLikeQuestion(text) {
 // a mechanical "I will keep that" to something that plainly is not a
 // fact worth remembering.
 const GREETINGS = ["hi", "hello", "hey", "yo", "sup", "greetings", "good morning", "good afternoon", "good evening", "howdy"];
+// A greeting stays a greeting when it is addressed to someone or ends in
+// a question mark: "hi backstory?" and "hello there" are not memory
+// questions, but an exact match against the list above missed both and
+// they fell through to the memory lookup, which then abstained.
+const GREETING_RE = new RegExp(
+  "^(" + GREETINGS.join("|") + ")\\b[\\s,]*(there|backstory|again|everyone|all)?$",
+  "i"
+);
 function looksLikeGreeting(text) {
-  const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
-  return GREETINGS.includes(t);
+  const t = text.trim().toLowerCase().replace(/[.!?]+$/, "");
+  return GREETINGS.includes(t) || GREETING_RE.test(t);
 }
 function greetingReply() {
   const replies = [
@@ -824,6 +832,31 @@ function looksLikeMetaQuestion(text) {
 }
 function metaReply() {
   return "I am Backstory, a memory layer for conversations. I remember what you tell me across sessions, keep the history when a fact changes instead of losing the old value, and say so plainly when I do not have enough information rather than guessing.";
+}
+
+// Announcing that you are about to say something is neither a fact to
+// store nor a question memory can answer. "I have a secret to tell you,
+// can I go ahead?" was being sent to the memory lookup purely because it
+// ends in a question mark, and answered with "I don't have enough
+// information", which reads as a non sequitur. "I want to tell you a
+// secret" was worse: it got stored as though it were a fact.
+const SHARE_INTENT_RE = /\b(?:can|may|shall|should)\s+i\b[^?]*\b(?:tell|share|say|ask|go\s+ahead)\b|\bi\s+(?:want|wanna|would\s+like|need|have|have\s+got|got)\b[^.?]*\b(?:tell|share|say|secret|something)\b|\blet\s+me\s+tell\s+you\b|\bguess\s+what\b|\bare\s+you\s+(?:ready|listening|there)\b/i;
+// A copula means the sentence carries actual content, so "I want to tell
+// you my name is Eben" must still be remembered rather than treated as a
+// bare announcement.
+const HAS_CONTENT_RE = /\b(is|are|was|were|am)\b|[=:]/i;
+function looksLikeShareIntent(text) {
+  const t = text.trim();
+  if (HAS_CONTENT_RE.test(t)) return false;
+  return SHARE_INTENT_RE.test(t);
+}
+function shareIntentReply() {
+  const replies = [
+    "Go ahead, I am listening.",
+    "Please do. I will remember it.",
+    "Sure, tell me and I will keep it.",
+  ];
+  return replies[Math.floor(Math.random() * replies.length)];
 }
 
 function clearDemoBanner() {
@@ -869,6 +902,12 @@ $("form").addEventListener("submit", async (e) => {
     if (looksLikeGreeting(text)) {
       addMsg("user", escapeHtml(text));
       addMsg("bot", escapeHtml(greetingReply()));
+    } else if (looksLikeShareIntent(text)) {
+      // Before chitchat: "guess what" is short enough to look like a
+      // throwaway reaction, but it is an opening, so it deserves an
+      // invitation to continue rather than an acknowledgement.
+      addMsg("user", escapeHtml(text));
+      addMsg("bot", escapeHtml(shareIntentReply()));
     } else if (looksLikeChitchat(text)) {
       addMsg("user", escapeHtml(text));
       addMsg("bot", escapeHtml(chitchatReply(text)));
