@@ -81,13 +81,21 @@ class MemoryEngine:
                 if idx == len(turns) - 1:
                     atoms = atoms_from_dicts(preextracted, occurred_at)
             elif self.settings.openai_api_key and role in {"user", "assistant"}:
-                atoms = extract_with_llm(
-                    "\n".join(window),
-                    occurred_at,
-                    api_key=self.settings.openai_api_key,
-                    base_url=self.settings.openai_base_url,
-                    model=self.settings.backstory_extract_model,
-                )
+                # The LLM is an upgrade to extraction quality, never a
+                # requirement for storing a fact. A missing client
+                # library, a rate limit, or a provider outage must not
+                # cost the user their memory, so fall back to the
+                # heuristic path rather than failing the whole ingest.
+                try:
+                    atoms = extract_with_llm(
+                        "\n".join(window),
+                        occurred_at,
+                        api_key=self.settings.openai_api_key,
+                        base_url=self.settings.openai_base_url,
+                        model=self.settings.backstory_extract_model,
+                    )
+                except Exception:
+                    atoms = heuristic_extract(content, occurred_at, speaker=role)
             elif role in {"user", "assistant"}:
                 atoms = heuristic_extract(content, occurred_at, speaker=role)
             for atom in atoms:
@@ -133,16 +141,23 @@ class MemoryEngine:
         decision = decide(question, facts)
         if decision.action == "abstain":
             return Answer(ABSTAIN_TEXT, decision.action, decision.reason, decision.facts)
+        text = ""
         if self.settings.openai_api_key:
-            text = llm_answer(
-                question,
-                question_date,
-                decision,
-                api_key=self.settings.openai_api_key,
-                base_url=self.settings.openai_base_url,
-                model=self.settings.backstory_answer_model,
-            )
-        else:
+            # Same reasoning as extraction: a provider failure should
+            # degrade the wording, not lose the answer. The evidence pack
+            # is already assembled from the graph at this point.
+            try:
+                text = llm_answer(
+                    question,
+                    question_date,
+                    decision,
+                    api_key=self.settings.openai_api_key,
+                    base_url=self.settings.openai_base_url,
+                    model=self.settings.backstory_answer_model,
+                )
+            except Exception:
+                text = ""
+        if not text:
             text = template_answer(question, decision)
         return Answer(text, decision.action, decision.reason, decision.facts)
 
