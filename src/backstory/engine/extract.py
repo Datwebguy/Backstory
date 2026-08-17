@@ -18,7 +18,7 @@ from backstory.engine.normalize import Atom
 from backstory.hydra.schema import PREDICATE_CLASS
 
 EXTRACT_PROMPT = """You extract durable memory atoms from a conversation window.
-Return JSON: {"atoms": [ ... ]}
+Return JSON: {{"atoms": [ ... ]}}
 
 Each atom:
 - subject: string (usually "user" or a person name)

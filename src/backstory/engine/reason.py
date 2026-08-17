@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backstory.engine.abstain import ABSTAIN_TEXT, Decision
+from backstory.engine.abstain import ABSTAIN_TEXT, NAME_PREDICATES, Decision
 from backstory.engine.normalize import norm_text
 from backstory.engine.retrieve import RetrievedFact
 
@@ -62,7 +62,7 @@ def template_answer(question: str, decision: Decision) -> str:
                 extra = " Previously: " + ", ".join(h.object_text for h in history) + "."
             return f"{current.object_text}.{extra}"
     if any(w in q for w in ("my name", "i called", "call me", "who am i")):
-        current = next((f for f in facts if f.is_current and f.predicate == "name"), None)
+        current = next((f for f in facts if f.is_current and f.predicate in NAME_PREDICATES), None)
         if current:
             return f"Your name is {current.object_text.strip().title()}."
     if "work" in q and "now" in q:
@@ -117,4 +117,24 @@ Write a concise answer. Mention dates when they matter. If evidence conflicts, s
             {"role": "user", "content": prompt},
         ],
     )
-    return (completion.choices[0].message.content or "").strip()
+    return _normalize_llm_text((completion.choices[0].message.content or "").strip())
+
+
+_TEXT_NORMALIZE = str.maketrans({
+    " ": " ",  # narrow no-break space
+    " ": " ",  # no-break space
+    " ": " ",  # thin space
+    "‐": "-",  # hyphen
+    "‑": "-",  # non-breaking hyphen
+    "‒": "-",  # figure dash
+    "–": "-",  # en dash
+    "—": "-",  # em dash
+})
+
+
+def _normalize_llm_text(text: str) -> str:
+    """Some models favor typographic whitespace/dash variants that render
+    identically on screen but are not ASCII, silently breaking any exact
+    or substring match (e.g. "Company B" != "Company B").
+    """
+    return text.translate(_TEXT_NORMALIZE)

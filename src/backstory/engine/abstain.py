@@ -44,6 +44,11 @@ CONSTRAINT_RE = re.compile(
 NOW_RE = re.compile(r"\b(now|currently|current|today)\b", re.I)
 PREV_RE = re.compile(r"\b(previously|before|used to|last year|ago)\b", re.I)
 
+# The heuristic extractor always emits "name"; an LLM extractor is free
+# to phrase the predicate differently (has_name, full_name, ...) despite
+# prompt guidance, so anything that means the same thing is accepted.
+NAME_PREDICATES = {"name", "has_name", "full_name", "called"}
+
 
 def decide(question: str, facts: list[RetrievedFact]) -> Decision:
     if not facts:
@@ -68,7 +73,7 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
 
     if _asks_now(question):
         current = [f for f in relevant if f.is_current]
-        unique = [f for f in current if f.predicate in {"lives_in", "works_at", "works_as", "located_in", "name"}]
+        unique = [f for f in current if f.predicate in {"lives_in", "works_at", "works_as", "located_in"} | NAME_PREDICATES]
         if unique:
             open_conflicts = [f for f in unique if f.status == "contradicted" or f.contradicted_by]
             if open_conflicts and len({norm_text(f.object_text) for f in unique}) > 1:
@@ -107,7 +112,7 @@ def _relevant(question: str, fact: RetrievedFact) -> bool:
         return True
     if any(w in q for w in ("own", "have", "how many")) and fact.predicate in {"owns", "has"}:
         return True
-    if any(w in q for w in ("name", "called")) and fact.predicate == "name":
+    if any(w in q for w in ("name", "called")) and fact.predicate in NAME_PREDICATES:
         return True
     return False
 

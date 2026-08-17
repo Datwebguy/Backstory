@@ -6,7 +6,8 @@ from backstory.hydra.client import HydraClient
 
 
 def _engine(tmp_path: Path) -> MemoryEngine:
-    settings = Settings(backstory_data_dir=tmp_path)
+    # Hermetic on purpose: see test_versioning.py's _engine for why.
+    settings = Settings(backstory_data_dir=tmp_path, openai_api_key="")
     return MemoryEngine(settings=settings, hydra=HydraClient(settings))
 
 

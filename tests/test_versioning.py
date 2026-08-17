@@ -6,7 +6,10 @@ from backstory.hydra.client import HydraClient
 
 
 def _engine(tmp_path: Path) -> MemoryEngine:
-    settings = Settings(backstory_data_dir=tmp_path)
+    # Hermetic on purpose: these tests assert exact heuristic-path output,
+    # so a developer's local .env (or CI's) must never leak an LLM key in
+    # here regardless of what is configured for actually running the app.
+    settings = Settings(backstory_data_dir=tmp_path, openai_api_key="")
     return MemoryEngine(settings=settings, hydra=HydraClient(settings))
 
 
