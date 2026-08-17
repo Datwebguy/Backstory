@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Backstory</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fdfbf9'/%3E%3Cpath d='M18 3 7 18h7l-2 11 12-16h-8z' fill='%23ff6f1e' stroke='%23171717' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fdfbf9'/%3E%3Ccircle cx='9' cy='10' r='3.4' fill='%23fdfbf9' stroke='%23171717' stroke-width='1.6'/%3E%3Ccircle cx='23' cy='10' r='3.4' fill='%23fdfbf9' stroke='%23171717' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='23' r='3.6' fill='%23ff6f1e' stroke='%23171717' stroke-width='1.6'/%3E%3Cpath d='M11.6 12.2 14.3 20M20.4 12.2 17.7 20M12.4 10H19.6' stroke='%23171717' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,560;9..144,600;9..144,640;9..144,680&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -105,6 +105,7 @@
       box-shadow: var(--shadow-subtle);
     }
     .ghost:hover { border-color: var(--orange); color: var(--sienna); background: var(--cream); }
+    .ghost.new-chat { font-weight: 600; border-width: 2px; }
     .btn {
       display: inline-flex;
       align-items: center;
@@ -388,9 +389,9 @@
         backstory
       </div>
       <div class="header-actions">
-        <a class="ghost" href="/">← about backstory</a>
-        <button class="ghost" id="tryBtn" type="button" hidden>try a memory</button>
+        <button class="ghost new-chat" id="tryBtn" type="button" hidden>+ new chat</button>
         <button class="ghost" id="memBtn" type="button" hidden>what it remembers</button>
+        <a class="ghost" href="/">about backstory</a>
         <div class="user-chip" id="userChip" hidden>
           <img id="userAvatar" alt="" />
           <a class="ghost" id="signOutBtn" href="/auth/logout?next=/">sign out</a>
@@ -409,7 +410,7 @@
       <section class="hero" id="hero" hidden>
         <div class="hero-copy hero-copy--app" id="try">
           <h2 class="app-kicker">pick a memory to explore</h2>
-          <p>Or just start typing below — Backstory will ask or remember depending on what you say.</p>
+          <p>Or just start typing below — Backstory will ask or remember depending on what you say. A new chat clears this screen, not your memory: everything you have told Backstory is still there.</p>
           <div class="scenarios" id="scenarios">
             <button class="scenario" data-demo="work" type="button">
               <strong>Changed plans</strong>
@@ -773,6 +774,11 @@ function looksLikeQuestion(text) {
   return /[?]|(^(what|where|when|why|how|who|can you|do you|did i|tell me)\b)/i.test(text.trim());
 }
 
+// Small talk, thanks, and questions about Backstory itself are not
+// memories to store and not questions memory can answer. Handling them
+// here, entirely client side, keeps the composer from ever replying with
+// a mechanical "I will keep that" to something that plainly is not a
+// fact worth remembering.
 const GREETINGS = ["hi", "hello", "hey", "yo", "sup", "greetings", "good morning", "good afternoon", "good evening", "howdy"];
 function looksLikeGreeting(text) {
   const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
@@ -781,10 +787,30 @@ function looksLikeGreeting(text) {
 function greetingReply() {
   const replies = [
     "Hi there. Ask me something you have told me before, or tell me something new to remember.",
-    "Hello. I am ready when you are — ask a question or share something worth remembering.",
+    "Hello. I am ready when you are, ask a question or share something worth remembering.",
     "Hey. What would you like to ask, or is there something new I should remember?",
   ];
   return replies[Math.floor(Math.random() * replies.length)];
+}
+
+const CHITCHAT = ["thanks", "thank you", "thx", "ty", "ok", "okay", "cool", "nice", "great", "awesome", "lol", "haha", "bye", "goodbye", "see you", "good night", "sure", "alright", "got it", "np", "no problem"];
+function looksLikeChitchat(text) {
+  const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
+  return CHITCHAT.includes(t);
+}
+function chitchatReply(text) {
+  const t = text.trim().toLowerCase();
+  if (/thank/.test(t)) return "You are welcome.";
+  if (/bye|good night/.test(t)) return "Goodbye. I will still be here, and I will still remember, whenever you come back.";
+  return "Got it. Ask me something, or tell me what to remember.";
+}
+
+const META_RE = /^(what can you do|what do you do|what is backstory|what'?s backstory|how do you work|how does (this|backstory|it) work|how does memory work|who are you|what are you|are you an? ai|are you real|are you human|what('?s| is) this)\??$/i;
+function looksLikeMetaQuestion(text) {
+  return META_RE.test(text.trim());
+}
+function metaReply() {
+  return "I am Backstory, a memory layer for conversations. I remember what you tell me across sessions, keep the history when a fact changes instead of losing the old value, and say so plainly when I do not have enough information rather than guessing.";
 }
 
 function clearDemoBanner() {
@@ -830,6 +856,12 @@ $("form").addEventListener("submit", async (e) => {
     if (looksLikeGreeting(text)) {
       addMsg("user", escapeHtml(text));
       addMsg("bot", escapeHtml(greetingReply()));
+    } else if (looksLikeChitchat(text)) {
+      addMsg("user", escapeHtml(text));
+      addMsg("bot", escapeHtml(chitchatReply(text)));
+    } else if (looksLikeMetaQuestion(text)) {
+      addMsg("user", escapeHtml(text));
+      addMsg("bot", escapeHtml(metaReply()));
     } else if (looksLikeQuestion(text)) await ask(text);
     else await remember(text);
   } finally {
