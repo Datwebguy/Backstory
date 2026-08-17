@@ -56,6 +56,18 @@ class SessionIn(BaseModel):
 class AskIn(BaseModel):
     question: str
     question_date: str = ""
+    scope: str = "real"
+
+
+def _effective_user_key(user_key: str, scope: str) -> str:
+    """Demo scenarios never touch the account's real memory.
+
+    They write into a deterministic per-account sandbox namespace
+    instead, so a signed-in user's own facts never mix with fictional
+    demo content, and the sandbox is still fully isolated per account
+    (derived from the authenticated session, never client-chosen).
+    """
+    return f"demo:{user_key}" if scope == "demo" else user_key
 
 
 @app.get("/api/health")
@@ -87,7 +99,7 @@ def ask(body: AskIn, user_key: str = Depends(auth.require_user)) -> dict:
     if not engine().hydra.ready():
         raise HTTPException(503, "HydraDB is not ready")
     answer = engine().ask(
-        user_key=user_key,
+        user_key=_effective_user_key(user_key, body.scope),
         question=body.question,
         question_date=body.question_date,
     )
@@ -115,8 +127,9 @@ def ask(body: AskIn, user_key: str = Depends(auth.require_user)) -> dict:
 def load_demo(user_key: str = Depends(auth.require_user)) -> dict:
     if not engine().hydra.ready():
         raise HTTPException(503, "HydraDB is not ready")
-    load(engine(), user_key=user_key)
-    return {"ok": True, "user_key": user_key}
+    demo_key = _effective_user_key(user_key, "demo")
+    load(engine(), user_key=demo_key)
+    return {"ok": True, "user_key": demo_key}
 
 
 @app.get("/api/timeline")

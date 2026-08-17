@@ -61,6 +61,10 @@ def template_answer(question: str, decision: Decision) -> str:
             if history:
                 extra = " Previously: " + ", ".join(h.object_text for h in history) + "."
             return f"{current.object_text}.{extra}"
+    if any(w in q for w in ("my name", "i called", "call me", "who am i")):
+        current = next((f for f in facts if f.is_current and f.predicate == "name"), None)
+        if current:
+            return f"Your name is {current.object_text.strip().title()}."
     if "work" in q and "now" in q:
         current = next((f for f in facts if f.is_current and f.predicate.startswith("work")), None)
         if current:

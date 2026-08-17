@@ -186,6 +186,17 @@
       flex-direction: column;
       gap: 18px;
     }
+    .demo-banner {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      background: var(--dew);
+      border: 1.5px solid var(--charcoal);
+      border-radius: var(--r-cards);
+      color: var(--muted);
+      font-size: 13.5px;
+      text-align: center;
+    }
     .msg { max-width: 92%; animation: rise .35s ease; }
     .msg.user { align-self: flex-end; }
     .msg.user .bubble {
@@ -531,6 +542,7 @@ const LABELS = {
   needs: "What you needed",
   studies: "Studies",
   has: "Has",
+  name: "Name",
 };
 
 function prettyDate(iso) {
@@ -661,15 +673,26 @@ function prettyValue(predicate, value) {
 function humanizeEvidence(facts) {
   const stories = collapseFacts(facts);
   if (!stories.length) return "";
-  return stories.map((story) => {
+  const label = (predicate) => humanLabel(predicate).toLowerCase();
+  const sentences = stories.map((story) => {
     if (story.values.length === 1) {
       const v = story.values[0];
-      return `You mentioned ${prettyValue(story.predicate, v.value).toLowerCase()}${v.date ? ` on ${v.date}` : ""}.`;
+      return `${label(story.predicate)}: ${prettyValue(story.predicate, v.value)}${v.date ? ` (${v.date})` : ""}.`;
     }
     const first = story.values[0];
     const last = story.values[story.values.length - 1];
-    return `You first mentioned ${prettyValue(story.predicate, first.value)} on ${first.date}. Later, this became ${prettyValue(story.predicate, last.value)} on ${last.date}.`;
-  }).join(" ");
+    return `${label(story.predicate)}: ${prettyValue(story.predicate, first.value)} on ${first.date}, later ${prettyValue(story.predicate, last.value)} on ${last.date}.`;
+  });
+  // Different predicates about the same object (e.g. "bought" and "owns"
+  // the same thing) can render to the same sentence once the value and
+  // date match; keep only the first occurrence.
+  const seen = new Set();
+  const unique = sentences.filter((s) => {
+    if (seen.has(s)) return false;
+    seen.add(s);
+    return true;
+  });
+  return unique.join(" ");
 }
 
 function escapeHtml(s) {
@@ -711,15 +734,15 @@ function renderAnswer(data) {
   addMsg("bot", html, abstain ? "abstain" : "");
 }
 
-async function ask(question) {
+async function ask(question, scope = "real") {
   addMsg("user", escapeHtml(question));
   const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
   setStatus("Searching memory…");
   try {
-    const data = await post("/api/ask", { question });
+    const data = await post("/api/ask", { question, scope });
     thinking.remove();
     renderAnswer(data);
-    await refreshMemory();
+    if (scope === "real") await refreshMemory();
   } catch (err) {
     thinking.remove();
     addMsg("bot", "I could not reach memory just then. Give it another moment.");
@@ -750,6 +773,25 @@ function looksLikeQuestion(text) {
   return /[?]|(^(what|where|when|why|how|who|can you|do you|did i|tell me)\b)/i.test(text.trim());
 }
 
+const GREETINGS = ["hi", "hello", "hey", "yo", "sup", "greetings", "good morning", "good afternoon", "good evening", "howdy"];
+function looksLikeGreeting(text) {
+  const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
+  return GREETINGS.includes(t);
+}
+function greetingReply() {
+  const replies = [
+    "Hi there. Ask me something you have told me before, or tell me something new to remember.",
+    "Hello. I am ready when you are — ask a question or share something worth remembering.",
+    "Hey. What would you like to ask, or is there something new I should remember?",
+  ];
+  return replies[Math.floor(Math.random() * replies.length)];
+}
+
+function clearDemoBanner() {
+  const banner = $("demoBanner");
+  if (banner) banner.remove();
+}
+
 async function runDemo(key) {
   if (busy) return;
   busy = true;
@@ -758,13 +800,17 @@ async function runDemo(key) {
     await ensureDemo();
     thread.innerHTML = "";
     showThread();
+    thread.insertAdjacentHTML(
+      "beforebegin",
+      `<div class="demo-banner" id="demoBanner">Demo scenario — this conversation is example data, not your own. It is kept in a separate sandbox and never mixed with your real memory.</div>`
+    );
     const demo = DEMOS[key];
     for (const line of demo.seed) {
       const el = addMsg("user", escapeHtml(line.text));
       el.insertAdjacentHTML("beforeend", `<div class="when">${line.when}</div>`);
       await new Promise((r) => setTimeout(r, 180));
     }
-    await ask(demo.ask);
+    await ask(demo.ask, "demo");
   } finally {
     busy = false;
     $("send").disabled = false;
@@ -779,8 +825,12 @@ $("form").addEventListener("submit", async (e) => {
   input.style.height = "auto";
   busy = true;
   $("send").disabled = true;
+  clearDemoBanner();
   try {
-    if (looksLikeQuestion(text)) await ask(text);
+    if (looksLikeGreeting(text)) {
+      addMsg("user", escapeHtml(text));
+      addMsg("bot", escapeHtml(greetingReply()));
+    } else if (looksLikeQuestion(text)) await ask(text);
     else await remember(text);
   } finally {
     busy = false;
@@ -808,6 +858,7 @@ $("tryBtn").onclick = () => {
   hero.hidden = false;
   thread.hidden = true;
   thread.innerHTML = "";
+  clearDemoBanner();
 };
 $("memBtn").onclick = async () => { await refreshMemory(); openDrawer(); };
 $("closeMem").onclick = closeDrawer;

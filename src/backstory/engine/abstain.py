@@ -68,7 +68,7 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
 
     if _asks_now(question):
         current = [f for f in relevant if f.is_current]
-        unique = [f for f in current if f.predicate in {"lives_in", "works_at", "works_as", "located_in"}]
+        unique = [f for f in current if f.predicate in {"lives_in", "works_at", "works_as", "located_in", "name"}]
         if unique:
             open_conflicts = [f for f in unique if f.status == "contradicted" or f.contradicted_by]
             if open_conflicts and len({norm_text(f.object_text) for f in unique}) > 1:
@@ -106,6 +106,8 @@ def _relevant(question: str, fact: RetrievedFact) -> bool:
     if "like" in q and fact.predicate in {"likes", "dislikes", "prefers"}:
         return True
     if any(w in q for w in ("own", "have", "how many")) and fact.predicate in {"owns", "has"}:
+        return True
+    if any(w in q for w in ("name", "called")) and fact.predicate == "name":
         return True
     return False
 

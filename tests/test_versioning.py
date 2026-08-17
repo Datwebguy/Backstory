@@ -97,6 +97,28 @@ def test_lagos_then_abuja_keeps_history(tmp_path: Path):
         engine.close()
 
 
+def test_name_is_extracted_and_answered(tmp_path: Path):
+    # Regression: "my name is X" had no extraction pattern at all, and the
+    # word "name" was in the abstain relevance stop list (needed so the
+    # school demo doesn't false-match fish-tank facts), so even the raw
+    # stated snippet never counted as relevant. "What is my name?" abstained
+    # right after the user had just said their name in the same session.
+    engine = _engine(tmp_path)
+    user = "name-user"
+    try:
+        engine.ingest_session(
+            user_key=user,
+            session_key="s1",
+            occurred_at="2023-01-01T00:00:00",
+            turns=[{"role": "user", "content": "My name is Eben."}],
+        )
+        answer = engine.ask(user_key=user, question="What is my name?")
+        assert answer.action == "answer"
+        assert "eben" in answer.text.lower()
+    finally:
+        engine.close()
+
+
 def test_additive_owns_is_not_supersede(tmp_path: Path):
     engine = _engine(tmp_path)
     user = "bikes-user"

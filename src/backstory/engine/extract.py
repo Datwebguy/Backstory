@@ -116,6 +116,7 @@ def extract_with_llm(
 
 
 _PATTERNS = (
+    (re.compile(r"\b(?:my name is|i'?m called|call me) ([^.,!?]{2,60})", re.I), "name", "unique_state", "thing"),
     (re.compile(r"\bi (?:live|am living|moved)(?: to| in) ([^.,]{2,60})", re.I), "lives_in", "unique_state", "place"),
     (re.compile(r"\bi (?:work|worked|joined|left)(?: at| for)? ([^.,]{2,60})", re.I), "works_at", "unique_state", "org"),
     (re.compile(r"\bi (?:graduated|got my degree)(?: with)?(?: a degree in)? ([^.,]{2,80})", re.I), "graduated", "unique_state", "thing"),
