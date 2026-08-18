@@ -28,8 +28,10 @@ when it genuinely does not have an answer. It was built for Hack Hydra, Track
 node and edge in HydraDB, not a buried transcript or a nearest neighbor
 guess.
 
-This repository does not claim an official LongMemEval S score. The commands
-below are the ones this project actually ships and can back up.
+This repository does not claim an official LongMemEval-S 500 score. It
+does report one official 12-question oracle-slice number, below, from
+`evaluate_qa.py gpt-4o`. The commands are the ones this project actually
+ships and can back up.
 
 ## Contents
 
@@ -150,15 +152,12 @@ calls the official judge itself.
 # One question, ingest and ask only, no judge call
 python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --ids 6aeb4375 --skip-official-judge
 
-# A stratified 12 question slice, two per official type, drawn from the full 500
+# Stratified 12, heuristic extract, LLM answers, official judge
 python -m backstory.eval.slice_lme --dataset data/lme/longmemeval_oracle.json --per-type 2 --out data/lme/oracle_strat12.json
-python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12 --skip-official-judge
+python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --heuristic-extract --out-dir runs/lme/strat12_hybrid
 
-# Score existing hypotheses with the official judge (needs OPENAI_API_KEY)
-python -m backstory.eval.run_official --judge-only --hyp runs/lme/strat12/hyp_backstory.jsonl --dataset data/lme/oracle_strat12.json
-
-# The same slice, ingest then official judge (needs OPENAI_API_KEY)
-python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12
+# Score an existing hypothesis file only
+python -m backstory.eval.run_official --judge-only --hyp runs/lme/strat12_hybrid/hypotheses.jsonl --dataset data/lme/oracle_strat12.json
 
 # The full LongMemEval S set of 500 questions (slow, needs OPENAI_API_KEY,
 # and a non-local Hydra store — see docker-compose.s3.yml)
@@ -179,10 +178,15 @@ retrieval baseline on the same slice:
 python -m backstory.eval.run_compare
 ```
 
-This writes `runs/lme/strat12/compare.json`. See
-[docs/LONGMEMEVAL_VALIDATION.md](docs/LONGMEMEVAL_VALIDATION.md) for the last
-measured numbers and their caveats. Those numbers are unofficial until
-`evaluate_qa.py gpt-4o` actually runs.
+This writes `runs/lme/strat12/compare.json`.
+
+Last official judge result, `evaluate_qa.py gpt-4o` (`gpt-4o-2024-08-06`),
+on the 12-question oracle slice after heuristic extract and the current
+engine: **9/12 (0.75)**, abstention **2/2**. Artifact:
+`runs/lme/strat12_hybrid/hypotheses.jsonl.eval-results-gpt-4o`. That is
+not a LongMemEval-S 500 score. Three items still fail (clothing count
+and both preference questions). Details and the earlier 4/12 baseline
+are in [docs/LONGMEMEVAL_VALIDATION.md](docs/LONGMEMEVAL_VALIDATION.md).
 
 ### LongMemEval-V2
 
