@@ -136,7 +136,7 @@
       height: 26px;
       flex: none;
     }
-    .header-actions { display: flex; gap: 10px; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
     .ghost {
       display: inline-flex;
       align-items: center;
@@ -211,8 +211,16 @@
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: var(--r-cards);
-      padding: 14px 16px 12px;
+      padding: 16px 16px 14px;
       color: inherit;
+      transition: transform .22s cubic-bezier(.34,1.56,.64,1), border-color .18s, box-shadow .22s;
+    }
+    .scenario .n {
+      font-family: var(--gelica);
+      font-size: 12px;
+      letter-spacing: .08em;
+      color: var(--orange);
+      margin-bottom: 6px;
     }
     .scenario strong {
       display: block;
@@ -221,7 +229,7 @@
       margin-bottom: 4px;
     }
     .scenario span { color: var(--muted); font-size: 14.5px; }
-    .scenario:hover { border-color: var(--orange); box-shadow: var(--shadow-subtle); }
+    .scenario:hover { border-color: var(--orange); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
     .scenario:hover strong { color: var(--sienna); }
     .thread {
       max-width: 760px;
@@ -253,12 +261,18 @@
       padding: 12px 16px;
       border-radius: 18px 18px 5px 18px;
     }
-    .msg.bot { align-self: flex-start; }
+    .msg.bot { align-self: flex-start; max-width: 86%; }
     .msg.bot .bubble {
-      padding: 2px 2px 0;
-      font-size: 18px;
-      line-height: 1.45;
+      padding: 14px 16px 12px;
+      font-family: var(--gelica);
+      font-size: 18.5px;
+      line-height: 1.42;
+      letter-spacing: -0.015em;
+      background: var(--surface);
+      border: 1.5px solid var(--hairline);
+      border-radius: 6px 18px 18px 18px;
     }
+    .msg.bot .bubble .body { display: block; }
     .msg .when {
       font-size: 12px;
       color: var(--faint);
@@ -276,50 +290,71 @@
     .evidence-toggle {
       margin-top: 10px;
       background: none;
-      border: 0;
-      color: var(--accent);
-      padding: 0;
-      font-size: 14.5px;
+      border: 1px solid var(--accent-soft);
+      background: var(--accent-soft);
+      color: var(--sienna);
+      padding: 4px 10px;
+      font-size: 12.5px;
+      font-family: var(--geist);
+      border-radius: 999px;
     }
+    .evidence-toggle:hover { border-color: var(--orange); }
     .composer-wrap {
-      border-top: 1px solid var(--line);
-      background: var(--paper);
+      background: transparent;
     }
     .composer {
       max-width: 760px;
-      margin: 0 auto;
-      padding: 14px 20px 22px;
+      margin: 0 auto 18px;
+      padding: 8px 8px 8px 16px;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: flex-end;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-lg);
     }
     .composer textarea {
       flex: 1;
       resize: none;
-      border: 1.5px solid var(--border);
-      background: var(--card);
-      border-radius: var(--r-inputs);
-      padding: 14px 16px;
-      min-height: 52px;
+      border: 0;
+      background: transparent;
+      padding: 12px 4px 10px;
+      min-height: 44px;
       max-height: 140px;
       outline: none;
       color: var(--ink);
-      font-family: var(--gelica);
+      font-family: var(--geist);
+      font-size: 16px;
     }
-    .composer textarea:focus { border-color: var(--orange); }
-    .send {
-      width: 52px;
-      height: 52px;
-      border: 1.5px solid var(--border);
+    .composer textarea:focus { border-color: transparent; }
+    .mic, .send {
+      width: 44px;
+      height: 44px;
+      border: 0;
       border-radius: 50%;
-      background: var(--card);
+      background: transparent;
       color: var(--text);
-      box-shadow: var(--shadow-subtle);
       flex: none;
-      font-size: 18px;
+      font-size: 16px;
     }
-    .send:hover:not(:disabled) { border-color: var(--orange); color: var(--sienna); }
+    .mic:hover, .send:hover:not(:disabled) { color: var(--sienna); background: var(--surface); }
+    .mic.live {
+      color: #fff;
+      background: var(--orange);
+      animation: micPulse 1.1s ease-in-out infinite;
+    }
+    @keyframes micPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,111,30,.45); }
+      50% { box-shadow: 0 0 0 8px rgba(255,111,30,0); }
+    }
+    .send {
+      background: var(--orange);
+      color: #2b1a07;
+    }
+    .send:hover:not(:disabled) { background: var(--sienna); color: #fff; }
     .send:disabled { opacity: .35; }
+    .mic[hidden] { display: none !important; }
     .status {
       max-width: 760px;
       margin: 0 auto;
@@ -419,7 +454,7 @@
       .hero { padding-top: 16px; }
       .msg { max-width: 100%; }
       .stage { padding: 8px 14px 20px; }
-      .composer { padding: 10px 14px 16px; gap: 8px; }
+      .composer { margin: 0 12px 14px; padding: 6px 6px 6px 12px; gap: 6px; }
     }
 
     /* Phones. Three controls plus an avatar do not fit beside the
@@ -527,24 +562,28 @@
       </section>
       <section class="hero" id="hero" hidden>
         <div class="hero-copy hero-copy--app">
-          <h2 class="app-kicker">pick a memory to explore</h2>
-          <p>Or just start typing below. Backstory will ask or remember depending on what you say. A new chat clears this screen, not your memory: everything you have told Backstory is still there.</p>
+          <h2 class="app-kicker">what should I look up?</h2>
+          <p>Ask, tell, or speak. A new chat clears this screen, not the graph.</p>
           <div class="scenarios" id="scenarios">
             <button class="scenario" data-demo="work" type="button">
+              <div class="n">01</div>
               <strong>Changed plans</strong>
-              <span>A person's work history changed over several conversations.</span>
+              <span>Work history that updated, without losing the old job.</span>
             </button>
             <button class="scenario" data-demo="ada" type="button">
+              <div class="n">02</div>
               <strong>Remembered across conversations</strong>
-              <span>Information about a colleague is spread across multiple sessions.</span>
+              <span>Facts about one person, gathered from three sessions.</span>
             </button>
             <button class="scenario" data-demo="school" type="button">
+              <div class="n">03</div>
               <strong>Knows when it does not know</strong>
-              <span>Ask something that never appeared in memory.</span>
+              <span>A nearby fact exists. The asked one does not.</span>
             </button>
             <button class="scenario" data-demo="thinkpad" type="button">
+              <div class="n">04</div>
               <strong>Decision history</strong>
-              <span>Trace how a technology decision evolved.</span>
+              <span>Why a choice changed, not only what it became.</span>
             </button>
           </div>
         </div>
@@ -556,7 +595,13 @@
       <div class="status" id="status"></div>
       <div class="composer-wrap" id="composerWrap" hidden>
         <form class="composer" id="form">
-          <textarea id="input" rows="1" placeholder="Ask Backstory, or tell it something to remember."></textarea>
+          <textarea id="input" rows="1" placeholder="Ask, tell, or tap the mic."></textarea>
+          <button class="mic" id="mic" type="button" aria-label="Speak" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="11" rx="3"/>
+              <path d="M6 11a6 6 0 0 0 12 0M12 17v4M8 21h8"/>
+            </svg>
+          </button>
           <button class="send" id="send" type="submit" aria-label="Send">↑</button>
         </form>
       </div>
@@ -870,22 +915,20 @@ function renderAnswer(data) {
   const abstain = data.action === "abstain";
   const evidence = data.evidence || [];
   lastEvidence = evidence;
-  let html = escapeHtml(data.text);
+  let html = `<span class="body">${escapeHtml(data.text)}</span>`;
   if (abstain) {
-    html += `<div class="abstain-note">Not guessing is part of how Backstory stays trustworthy.</div>`;
+    html += `<div class="abstain-note">Nothing on record matches what you asked.</div>`;
   } else if (evidence.length) {
     const n = new Set(evidence.map((e) => e.predicate + e.object_text)).size || evidence.length;
-    html += `<div><button class="evidence-toggle" type="button" data-open-mem="1">Based on ${n} ${n === 1 ? "memory" : "memories"}</button></div>`;
-    const summary = humanizeEvidence(evidence);
-    if (summary) html += `<div class="abstain-note">${escapeHtml(summary)}</div>`;
+    html += `<div><button class="evidence-toggle" type="button" data-open-mem="1">on record · ${n}</button></div>`;
   }
   addMsg("bot", html, abstain ? "abstain" : "");
 }
 
 async function ask(question, scope = "real") {
   addMsg("user", escapeHtml(question));
-  const thinking = addMsg("bot", `<span class="thinking">Looking back…</span>`);
-  setStatus("Searching memory…");
+  const thinking = addMsg("bot", `<span class="thinking">Checking the record…</span>`);
+  setStatus("");
   try {
     const data = await post("/api/ask", { question, scope });
     thinking.remove();
@@ -909,7 +952,7 @@ async function remember(text) {
       occurred_at: new Date().toISOString().slice(0, 19),
       turns: [{ role: "user", content: text }],
     });
-    addMsg("bot", "I’ll keep that.");
+    addMsg("bot", "On record.");
     await refreshMemory();
   } catch (err) {
     addMsg("bot", "I could not store that just then.");
@@ -941,9 +984,9 @@ function looksLikeGreeting(text) {
 }
 function greetingReply() {
   const replies = [
-    "Hi there. Ask me something you have told me before, or tell me something new to remember.",
-    "Hello. I am ready when you are, ask a question or share something worth remembering.",
-    "Hey. What would you like to ask, or is there something new I should remember?",
+    "Here. Ask me what you already told me, or give me something new to keep.",
+    "Listening. What should I look up, or what should I write down?",
+    "Still here. The graph does not reset when the chat does.",
   ];
   return replies[Math.floor(Math.random() * replies.length)];
 }
@@ -964,9 +1007,9 @@ function looksLikeChitchat(text) {
 }
 function chitchatReply(text) {
   const t = text.trim().toLowerCase();
-  if (/thank/.test(t)) return "You are welcome.";
-  if (/bye|good night/.test(t)) return "Goodbye. I will still be here, and I will still remember, whenever you come back.";
-  return "Got it. Ask me something, or tell me what to remember.";
+  if (/thank/.test(t)) return "Kept.";
+  if (/bye|good night/.test(t)) return "I'll still have it when you come back.";
+  return "Say more, or ask me what I already have.";
 }
 
 const META_RE = /^(what can you do|what do you do|what is backstory|what'?s backstory|how do you work|how does (this|backstory|it) work|how does memory work|who are you|what are you|are you an? ai|are you real|are you human|what('?s| is) this)\??$/i;
@@ -974,7 +1017,7 @@ function looksLikeMetaQuestion(text) {
   return META_RE.test(text.trim());
 }
 function metaReply() {
-  return "I am Backstory, a memory layer for conversations. I remember what you tell me across sessions, keep the history when a fact changes instead of losing the old value, and say so plainly when I do not have enough information rather than guessing.";
+  return "I keep what you tell me as facts in a graph. When something changes I do not erase the old version. When I do not have it, I say so." ;
 }
 
 // Announcing that you are about to say something is neither a fact to
@@ -995,9 +1038,9 @@ function looksLikeShareIntent(text) {
 }
 function shareIntentReply() {
   const replies = [
-    "Go ahead, I am listening.",
-    "Please do. I will remember it.",
-    "Sure, tell me and I will keep it.",
+    "Go ahead. I'll write it down.",
+    "I'm listening.",
+    "Tell me. It stays on the graph.",
   ];
   return replies[Math.floor(Math.random() * replies.length)];
 }
@@ -1109,6 +1152,47 @@ thread.addEventListener("click", async (e) => {
     openDrawer();
   }
 });
+
+(function () {
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const mic = $("mic");
+  if (!Speech || !mic) return;
+  mic.hidden = false;
+  const rec = new Speech();
+  rec.lang = (navigator.language || "en-US");
+  rec.interimResults = true;
+  rec.continuous = false;
+  let live = false;
+  let base = "";
+  rec.onstart = () => {
+    live = true;
+    mic.classList.add("live");
+    mic.setAttribute("aria-pressed", "true");
+    setStatus("Listening… tap the mic to stop.");
+  };
+  rec.onend = () => {
+    live = false;
+    mic.classList.remove("live");
+    mic.setAttribute("aria-pressed", "false");
+    setStatus("");
+  };
+  rec.onerror = () => {
+    live = false;
+    mic.classList.remove("live");
+    setStatus("Could not hear that. Type instead.");
+  };
+  rec.onresult = (ev) => {
+    let said = "";
+    for (let i = 0; i < ev.results.length; i++) said += ev.results[i][0].transcript;
+    input.value = (base ? base.replace(/\s+$/, "") + " " : "") + said.trim();
+    input.dispatchEvent(new Event("input"));
+  };
+  mic.addEventListener("click", () => {
+    if (live) { rec.stop(); return; }
+    base = input.value;
+    try { rec.start(); } catch (e) { setStatus("Voice is not available here."); }
+  });
+})();
 
 (async () => {
   const signedIn = await checkAuth();

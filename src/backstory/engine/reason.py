@@ -79,8 +79,13 @@ def template_answer(question: str, decision: Decision) -> str:
         if current:
             return _fact_sentence(current)
     if "why" in q:
-        sentences = [_fact_sentence(f) for f in facts]
-        return "Based on your earlier statements: " + " ".join(s.rstrip(".") + "." for s in sentences if s)
+        sentences = [s.rstrip(".") for s in (_fact_sentence(f) for f in facts) if s]
+        if not sentences:
+            return ABSTAIN_TEXT
+        head, *rest = sentences
+        if rest:
+            return head + ". Also on record: " + "; ".join(rest) + "."
+        return head + "."
     if "what do i know" in q or "tell me about" in q:
         sentences = [_fact_sentence(f) for f in facts if f.is_current]
         return " ".join(s for s in sentences if s) or ABSTAIN_TEXT
@@ -219,11 +224,14 @@ def llm_answer(
 
     client = OpenAI(api_key=api_key, base_url=base_url)
     pack = render_pack(decision)
-    prompt = f"""Answer using ONLY the evidence pack. If the pack is insufficient, say you do not have enough information.
+    prompt = f"""Answer using ONLY the evidence pack.
+If the pack is insufficient, say you do not have enough information.
 Do not invent names, places, or numbers.
-Write one or two natural sentences. Do not echo raw predicates
-("has sister Ada. lives in London."). If the question is "how many",
-count distinct objects of the asked type, never the number of evidence rows.
+Lead with the answer in one short sentence, then at most one sentence of
+history if something was replaced. Sound like a person who checked a
+file, not a chatbot. No "sure", "I'd be happy to", "as an AI",
+bullet lists, or raw predicates. If the question is "how many",
+count distinct objects of the asked type, never evidence rows.
 If the question assumes something the pack never states, refuse.
 
 Question date: {question_date}
@@ -231,14 +239,18 @@ Question: {question}
 
 Evidence pack:
 {pack}
-
-Write a concise answer. Mention dates when they matter. If evidence conflicts, say so.
 """
     completion = client.chat.completions.create(
         model=model,
         temperature=0,
         messages=[
-            {"role": "system", "content": "You are Backstory. You only speak from retrieved memories."},
+            {
+                "role": "system",
+                "content": (
+                    "You are Backstory, a memory. You speak only from the "
+                    "retrieved record. Current facts first, then what they replaced."
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
     )
