@@ -223,7 +223,40 @@
     .theme-toggle .moon { display: none; }
     :root[data-theme="dark"] .theme-toggle .sun { display: none; }
     :root[data-theme="dark"] .theme-toggle .moon { display: block; }
-    .site-actions { display: flex; align-items: center; gap: 12px; }
+    .site-actions { display: flex; align-items: center; gap: 10px; }
+    header.site {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .social {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px; height: 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: var(--shadow-subtle);
+      transition: transform .2s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, color .18s ease;
+    }
+    .social:hover { transform: translateY(-2px) scale(1.06); border-color: var(--orange); color: var(--orange); }
+    .social svg { width: 17px; height: 17px; }
+    .ghost {
+      display: inline-flex; align-items: center;
+      padding: 14px 22px;
+      border-radius: var(--r-buttons);
+      font-size: 16px; font-weight: 500;
+      text-decoration: none;
+      color: var(--text-dim);
+      border: 1.5px solid transparent;
+    }
+    .ghost:hover { color: var(--sienna); border-color: var(--hairline); }
 
     /* Hero */
     .hero { padding: 44px 0 20px; }
@@ -283,6 +316,34 @@
     .pipe-step .n { font-family: var(--gelica); font-size: 26px; font-weight: 600; color: var(--orange); }
     .pipe-step strong { display: block; font-family: var(--gelica); font-size: 16px; margin: 6px 0 6px; }
     .pipe-step span { color: var(--text-dim); font-size: 14px; }
+    .pipe-step { cursor: pointer; }
+    .pipe-step.is-on {
+      border-color: var(--orange);
+      background: var(--card);
+      box-shadow: 0 12px 28px var(--shadow-card);
+    }
+    .path {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 36px;
+    }
+    .path-step {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14.5px;
+      text-align: center;
+    }
+    .path-step strong { font-family: var(--gelica); font-weight: 600; }
+    .path-join {
+      color: var(--orange);
+      font-size: 20px;
+      animation: pathPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pathPulse { 0%, 100% { opacity: .35; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
 
     /* Capabilities */
     .caps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -337,6 +398,7 @@
       will-change: transform;
     }
     .float:hover { z-index: 4; }
+    .float[data-demo] { cursor: pointer; }
     .float .convo { box-shadow: 0 10px 34px var(--shadow-card); }
     /* Each card keeps its own resting tilt, and drift nudges it around
        that angle rather than snapping it upright. */
@@ -586,6 +648,27 @@
     .foot-links a { color: rgba(253,251,249,.62); text-decoration: none; transition: color .15s ease; }
     .foot-links a:hover { color: var(--orange); }
     .foot-brand { display: flex; align-items: center; gap: 8px; font-family: var(--gelica); font-weight: 600; color: var(--cream); font-size: 16px; }
+    .foot-social {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    }
+    .foot-social a {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: #2b1a07;
+      background: var(--cream);
+      border: 1.5px solid var(--cream);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13.5px; font-weight: 600;
+      text-decoration: none;
+      transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .15s ease, color .15s ease;
+    }
+    .foot-social a:hover { transform: translateY(-2px); background: var(--orange); border-color: var(--orange); color: #2b1a07; }
+    .foot-social svg { width: 15px; height: 15px; }
+    .node { cursor: default; }
+    .node:hover .val { color: var(--cream); }
+    .fact-card { cursor: pointer; user-select: none; }
+    .fact-card:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+    html { scroll-behavior: smooth; }
 
     @media (max-width: 980px) {
       /* Absolute scatter has nowhere to go on a narrow screen, so the
@@ -615,6 +698,8 @@
       .hero-grid { grid-template-columns: 1fr; }
       .hero-art { display: none; }
       .pipeline { grid-template-columns: 1fr 1fr; }
+      .path { grid-template-columns: 1fr; gap: 8px; }
+      .path-join { display: none; }
       .caps { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
@@ -651,6 +736,8 @@
       .foot-cta { width: 100%; justify-content: center; }
       .foot-bottom { flex-direction: column; align-items: flex-start; gap: 14px; }
       .foot-links { gap: 14px 18px; }
+      .foot-social { width: 100%; }
+      .foot-social a { flex: 1; justify-content: center; }
       .chain-ask { font-size: 14px; gap: 10px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -658,7 +745,7 @@
       .typing span { animation: none; }
       .float { animation: none; }
       .sticker--bolt, .sticker--sparkle, .sticker--node,
-      .fact-card, .hand-arrow { animation: none; }
+      .fact-card, .hand-arrow, .path-join { animation: none; }
     }
   </style>
 </head>
@@ -674,6 +761,12 @@
       backstory
     </a>
     <div class="site-actions">
+      <a class="social" href="https://github.com/Datwebguy/Backstory" target="_blank" rel="noopener" aria-label="Backstory on GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.17-3.37-1.17-.45-1.16-1.1-1.47-1.1-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.34 1.9-1.29 2.74-1.02 2.74-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+      </a>
+      <a class="social" href="https://x.com/Datweb3guy" target="_blank" rel="noopener" aria-label="Datweb3guy on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.68 10.47 20.3 3h-1.57l-5.75 6.5L8.4 3H3.1l6.95 9.86L3.1 21h1.57l6.08-6.87L15.6 21h5.3l-7.22-10.53zm-2.15 2.43-.7-1-5.62-7.84h2.42l4.54 6.33.7 1 5.9 8.23h-2.42l-4.82-6.72z"/></svg>
+      </a>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme">
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4.2"/>
@@ -695,8 +788,9 @@
           <p class="lede">Ask about something you said weeks ago, revisit how a decision <span class="marker-highlight">actually<svg viewBox="0 0 60 8" preserveAspectRatio="none"><path d="M1 5.5C10 2 20 7 30 4S50 1 59 4.5" stroke="#ff6f1e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span> changed, or see what Backstory remembers. Everything is kept as versioned graph facts on HydraDB, not a buried transcript.</p>
           <div class="hero-ctas">
             <a class="btn btn-lg" href="/app">open backstory →</a>
+            <a class="ghost" href="#how">see the path</a>
           </div>
-          <p class="hero-note">Graph native memory that reasons across long histories, changing facts, and multiple sessions.</p>
+          <p class="hero-note">Tell it once. Come back later. The graph still has the history.</p>
         </div>
         <div class="hero-art" aria-hidden="true">
           <div class="caption-arrow">
@@ -707,16 +801,16 @@
             </svg>
           </div>
           <div class="fact-stack">
-            <div class="fact-card" style="--rot:-5deg">
+            <div class="fact-card" style="--rot:-5deg" tabindex="0" role="button" aria-label="A remembered fact about Priya">
               <div class="fact-kicker">remembered</div>
               <div class="fact-field"><label>role</label><span>tech lead</span></div>
-              <div class="fact-field"><label>name</label><span>Priya</span></div>
+              <div class="fact-field"><label>who</label><span>Priya</span></div>
               <div class="fact-field"><label>since</label><span>Jan 12</span></div>
             </div>
-            <div class="fact-card fact-card--2" style="--rot:4deg">
-              <div class="fact-kicker">superseded → current</div>
-              <div class="fact-field"><label>works at</label><span>Company B</span></div>
-              <div class="fact-field"><label>status</label><span>current</span></div>
+            <div class="fact-card fact-card--2" id="workFact" style="--rot:4deg" tabindex="0" role="button" aria-label="Toggle current and earlier employer">
+              <div class="fact-kicker" data-k>current · click to see history</div>
+              <div class="fact-field"><label>works at</label><span data-v>Company B</span></div>
+              <div class="fact-field"><label>status</label><span data-s>current</span></div>
             </div>
           </div>
           <svg class="sticker sticker--bolt" viewBox="0 0 32 32" fill="none">
@@ -740,10 +834,10 @@
         <div class="scatter-center">
           <p class="kicker">real conversations</p>
           <h2 class="section-title">this is what it actually answers.</h2>
-          <p class="section-sub">Every exchange around this is verbatim output from the running engine. Nothing here was written for the page.</p>
+          <p class="section-sub">The same questions you can run in the app. Click a card below to try it live.</p>
         </div>
 
-        <div class="float f1 reveal">
+        <div class="float f1 reveal" data-demo="work">
           <article class="convo mini played">
             <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">a fact that changed</span></div>
             <div class="convo-body">
@@ -754,7 +848,7 @@
           </article>
         </div>
 
-        <div class="float f2 reveal">
+        <div class="float f2 reveal" data-demo="ada">
           <article class="convo mini played">
             <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">scattered across sessions</span></div>
             <div class="convo-body">
@@ -765,7 +859,7 @@
           </article>
         </div>
 
-        <div class="float f3 reveal">
+        <div class="float f3 reveal" data-demo="school">
           <article class="convo mini played">
             <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">refusing to guess</span></div>
             <div class="convo-body">
@@ -776,7 +870,7 @@
           </article>
         </div>
 
-        <div class="float f4 reveal">
+        <div class="float f4 reveal" data-demo="thinkpad">
           <article class="convo mini played">
             <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">why, not just what</span></div>
             <div class="convo-body">
@@ -802,8 +896,8 @@
           <article class="convo mini played">
             <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">simple recall</span></div>
             <div class="convo-body">
-              <div class="turn user"><div class="bubble">What is my name?</div></div>
-              <div class="turn bot"><div class="bubble">Your name is Eben, as stated on 2026-08-11.</div></div>
+              <div class="turn user"><div class="bubble">What degree did I graduate with?</div></div>
+              <div class="turn bot"><div class="bubble">You graduated with a degree in Business Administration.</div></div>
               <span class="memchip">based on 1 memory</span>
             </div>
           </article>
@@ -814,7 +908,14 @@
     <section class="block" id="how">
       <p class="kicker">how it works</p>
       <h2 class="section-title">every message becomes a graph fact, not just tokens in a transcript.</h2>
-      <p class="section-sub">Backstory's engine runs the same five stage pipeline on every turn, backed by HydraDB as the graph of record. There is no vector only "closest chunk" guessing.</p>
+      <p class="section-sub">The same path on every turn. HydraDB is the graph of record.</p>
+      <div class="path reveal" aria-hidden="true">
+        <div class="path-step">you <strong>say it</strong></div>
+        <span class="path-join">→</span>
+        <div class="path-step">HydraDB <strong>keeps it</strong></div>
+        <span class="path-join">→</span>
+        <div class="path-step">you <strong>ask later</strong></div>
+      </div>
       <div class="pipeline">
         <div class="pipe-step reveal"><div class="n">01</div><strong>extract</strong><span>Pull subject / predicate / object atoms from what was said.</span></div>
         <div class="pipe-step reveal"><div class="n">02</div><strong>resolve</strong><span>Match entities by exact key or alias. Sam ≠ Samuel unless told so.</span></div>
@@ -933,10 +1034,18 @@
         <a href="#conversations">conversations</a>
         <a href="#how">how it works</a>
         <a href="#faq">questions</a>
-        <a href="https://github.com/Datwebguy/Backstory" target="_blank" rel="noopener">source</a>
         <a href="/app">open app</a>
       </nav>
-      <div>graph native memory, built on HydraDB</div>
+      <div class="foot-social">
+        <a href="https://github.com/Datwebguy/Backstory" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.17-3.37-1.17-.45-1.16-1.1-1.47-1.1-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.34 1.9-1.29 2.74-1.02 2.74-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+          GitHub
+        </a>
+        <a href="https://x.com/Datweb3guy" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.68 10.47 20.3 3h-1.57l-5.75 6.5L8.4 3H3.1l6.95 9.86L3.1 21h1.57l6.08-6.87L15.6 21h5.3l-7.22-10.53zm-2.15 2.43-.7-1-5.62-7.84h2.42l4.54 6.33.7 1 5.9 8.23h-2.42l-4.82-6.72z"/></svg>
+          @Datweb3guy
+        </a>
+      </div>
     </div>
   </footer>
 
@@ -1002,6 +1111,44 @@
     sizeChainRail();
     window.addEventListener("resize", sizeChainRail);
     window.addEventListener("load", sizeChainRail);
+
+    (function () {
+      var card = document.getElementById("workFact");
+      if (!card) return;
+      var on = true;
+      function paint() {
+        card.querySelector("[data-k]").textContent = on ? "current · click to see history" : "earlier · click for current";
+        card.querySelector("[data-v]").textContent = on ? "Company B" : "Company A";
+        card.querySelector("[data-s]").textContent = on ? "current" : "superseded";
+      }
+      function flip() { on = !on; paint(); }
+      card.addEventListener("click", flip);
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+      });
+    })();
+
+    document.querySelectorAll(".float[data-demo]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        window.location.href = "/app?demo=" + el.getAttribute("data-demo");
+      });
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") window.location.href = "/app?demo=" + el.getAttribute("data-demo");
+      });
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("role", "link");
+    });
+
+    (function () {
+      var steps = document.querySelectorAll(".pipe-step");
+      if (!steps.length) return;
+      steps.forEach(function (step) {
+        step.addEventListener("click", function () {
+          steps.forEach(function (s) { s.classList.remove("is-on"); });
+          step.classList.add("is-on");
+        });
+      });
+    })();
   </script>
 </body>
 </html>
