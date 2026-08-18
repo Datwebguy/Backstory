@@ -76,9 +76,19 @@ the Tigris bucket contains the live graph data, including the
 
 ### Local development
 
-`docker-compose.yml` still uses `CLOUD_PROVIDER=local`. That is fine for
-the test suite, the smoke checks, and the demos, all of which are short
-lived. If local writes start failing with the error above, recreate the
+`docker-compose.yml` still defaults to `CLOUD_PROVIDER=local`. That is
+fine for the test suite, the smoke checks, and the demos, all of which
+are short lived. A 500-question ingest or a BEAM conversation will die
+the same way as #81. For those runs, point compose at S3:
+
+```powershell
+copy .env.example .env
+# fill AWS_* then:
+docker compose -f docker-compose.yml -f docker-compose.s3.yml up -d
+# or: make hydra-s3
+```
+
+If local writes start failing with the error above, recreate the
 store:
 
 ```powershell

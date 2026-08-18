@@ -12,8 +12,10 @@ Gates, in order:
 4. question names a proper noun (person/org/place) that appears nowhere
    in the retrieved evidence -> abstain (false premise, e.g. "my job at
    Google" when the graph only knows about NovaTech)
-5. only contradicted current facts for a unique_state 'now' question -> qualify
-6. otherwise answer (possibly with history)
+5. comparison / "which first, A or B" question where at least one
+   alternative has no supporting evidence -> abstain (missing conjunct)
+6. only contradicted current facts for a unique_state 'now' question -> qualify
+7. otherwise answer (possibly with history)
 """
 
 from __future__ import annotations
@@ -75,12 +77,20 @@ def decide(question: str, facts: list[RetrievedFact]) -> Decision:
 
     named = _asked_named_entities(question)
     if named:
-        evidence_blob = norm_text(
-            " ".join(f"{f.object_text} {f.qualifiers} {f.quote} {f.subject_name}" for f in facts)
-        )
+        evidence_blob = _evidence_blob(facts)
         unmatched = [n for n in named if norm_text(n) not in evidence_blob]
         if unmatched:
             return Decision("abstain", f"false_premise_entity:{unmatched[0]}", relevant)
+
+    # Official _abs items are often "which first, A or B?" when only A
+    # exists. Related evidence is not enough: every alternative the
+    # question treats as real has to appear in the graph, or we refuse.
+    alternatives = _asked_alternatives(question)
+    if alternatives:
+        evidence_blob = _evidence_blob(facts)
+        missing = [alt for alt in alternatives if not _covers_alternative(alt, evidence_blob)]
+        if missing:
+            return Decision("abstain", f"missing_conjunct:{missing[0][:40]}", relevant)
 
     if _asks_now(question):
         current = [f for f in relevant if f.is_current]
@@ -248,7 +258,7 @@ _QUESTION_STARTERS = {
 
 
 def _asked_named_entities(question: str) -> list[str]:
-    """Capitalized proper-noun-like tokens the question asserts as fact.
+    """Proper-noun-like tokens the question asserts as fact.
 
     Used to catch false-premise questions ("my current job at Google")
     where the named entity was never mentioned anywhere in memory.
@@ -267,6 +277,52 @@ def _asked_named_entities(question: str) -> list[str]:
             continue
         names.append(core)
     return names
+
+
+_ALT_STOP = {
+    "the", "a", "an", "my", "our", "your", "his", "her", "their",
+    "first", "then", "later", "from", "with", "that", "this", "those",
+    "these", "did", "do", "does", "have", "has", "had", "was", "were",
+    "been", "and", "for", "into", "onto",
+}
+
+
+def _asked_alternatives(question: str) -> list[str]:
+    """Split a which/first comparison into the events it treats as real.
+
+    Official abstention items often ask which of two tasks happened
+    first when only one was ever stated. This is an engine rule, not a
+    per-question special case: every alternative must be grounded.
+    """
+    if not re.search(r"\b(which|first)\b", question, re.I):
+        return []
+    if not re.search(r"\bor\b", question, re.I):
+        return []
+    tail = question
+    if "," in question:
+        tail = question[question.rfind(",") + 1 :]
+    tail = tail.strip(" ?.!")
+    parts = re.split(r"\s+or\s+", tail, flags=re.I)
+    alts = [part.strip(" '\"") for part in parts if len(part.strip(" '\"")) > 2]
+    return alts if len(alts) >= 2 else []
+
+
+def _covers_alternative(alt: str, evidence_blob: str) -> bool:
+    tokens = [
+        t
+        for t in re.findall(r"[a-z0-9]+", norm_text(alt))
+        if len(t) > 2 and t not in _ALT_STOP
+    ]
+    if not tokens:
+        return True
+    hits = sum(1 for t in tokens if t in evidence_blob)
+    return hits >= max(1, (len(tokens) + 1) // 2)
+
+
+def _evidence_blob(facts: list[RetrievedFact]) -> str:
+    return norm_text(
+        " ".join(f"{f.object_text} {f.qualifiers} {f.quote} {f.subject_name}" for f in facts)
+    )
 
 
 def _asks_now(question: str) -> bool:

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://api.openai.com/v1"
     backstory_extract_model: str = "gpt-4o-mini"
     backstory_answer_model: str = "gpt-4o-mini"
+    # When false, ingest uses heuristic_extract even if a key is set.
+    # Answers and the official judge can still use the LLM.
+    backstory_llm_extract: bool = True
     backstory_embed_model: str = "text-embedding-3-small"
     backstory_judge_model: str = "gpt-4o"
 

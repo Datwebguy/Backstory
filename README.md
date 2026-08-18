@@ -75,6 +75,17 @@ docker compose up -d
 
 Wait until `http://127.0.0.1:9090/readyz` returns 200.
 
+That default is `CLOUD_PROVIDER=local`, which is fine for smoke tests
+and the four demos. A long ingest can die the same way as
+[hydradb#81](https://github.com/hydra-db/hydradb/issues/81). For BEAM or
+the 500-question set, use the S3 override:
+
+```powershell
+copy .env.example .env
+# fill AWS_* then:
+docker compose -f docker-compose.yml -f docker-compose.s3.yml up -d
+```
+
 ## Install and smoke test
 
 ```powershell
@@ -115,7 +126,9 @@ things to remember, inspect the evidence behind an answer, and browse the
 timeline of how a fact changed over time. The landing page's scenario cards
 link to `/app?demo=<name>`, which signs you in and runs that scenario
 automatically. Every account gets its own private memory. Nobody sees another
-account's facts, including the demo scenarios.
+account's facts, including the demo scenarios. Seeded demos always
+write under `demo:<account>` (`demo:demo-user-ui` for the CLI), never
+into a real user's graph.
 
 ## Evaluation
 
@@ -141,10 +154,14 @@ python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json
 python -m backstory.eval.slice_lme --dataset data/lme/longmemeval_oracle.json --per-type 2 --out data/lme/oracle_strat12.json
 python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12 --skip-official-judge
 
-# The same slice, scored by the official judge (needs OPENAI_API_KEY)
+# Score existing hypotheses with the official judge (needs OPENAI_API_KEY)
+python -m backstory.eval.run_official --judge-only --hyp runs/lme/strat12/hyp_backstory.jsonl --dataset data/lme/oracle_strat12.json
+
+# The same slice, ingest then official judge (needs OPENAI_API_KEY)
 python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --out-dir runs/lme/strat12
 
-# The full LongMemEval S set of 500 questions (slow, needs OPENAI_API_KEY)
+# The full LongMemEval S set of 500 questions (slow, needs OPENAI_API_KEY,
+# and a non-local Hydra store — see docker-compose.s3.yml)
 python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json --limit 0
 ```
 
@@ -164,7 +181,22 @@ python -m backstory.eval.run_compare
 
 This writes `runs/lme/strat12/compare.json`. See
 [docs/LONGMEMEVAL_VALIDATION.md](docs/LONGMEMEVAL_VALIDATION.md) for the last
-measured numbers and their caveats.
+measured numbers and their caveats. Those numbers are unofficial until
+`evaluate_qa.py gpt-4o` actually runs.
+
+### LongMemEval-V2
+
+LME-V2 is a web/enterprise *agent trajectory* benchmark, not a newer
+LongMemEval-S. This repo ships an adapter that flattens trajectory text
+into sessions so the same engine can be probed. It does **not** run the
+official LME-V2 harness and ignores screenshots.
+
+```powershell
+python -m backstory.eval.run_lme_v2 --data-root data/lme-v2 --tier small --limit 2
+```
+
+If `data/lme-v2/questions.jsonl` is missing, the command exits 0 and
+tells you what to download. Adapter output is not an LME-V2 score.
 
 ### BEAM
 

@@ -178,8 +178,10 @@ Gates:
 1. no candidates → abstain
 2. no relevant facts → abstain
 3. asked numeric constraint unmatched → abstain
-4. unresolved current conflict on a “now” unique_state question → qualify
-5. else answer
+4. named entity in the question never appears in evidence → abstain
+5. which/first comparison missing one alternative → abstain
+6. unresolved current conflict on a “now” unique_state question → qualify
+7. else answer
 
 Thresholds were not invented as scores. The 30-gallon rule is a parsed
 constraint check, tested in `tests/test_abstention.py`.
@@ -204,15 +206,14 @@ which writes official-shaped JSON + `{question_id, hypothesis}` jsonl from the
 four demos. That command is the smallest reproducible eval we can execute
 offline.
 
-LME-V2 is deliberately not implemented. Despite the name it is not a
-newer LongMemEval-S: it evaluates memory over multimodal *web and
-enterprise agent trajectories* (up to 500 trajectories and 115M tokens
-per haystack), scoring abilities such as workflow knowledge and
-environment gotchas. Backstory is a conversational memory layer, so
-running it would mean first building a web agent to produce those
-trajectories, which is a different system rather than an additional
-evaluation of this one. LongMemEval-S remains the benchmark that matches
-what this project actually does.
+LME-V2 has a first-class adapter (`backstory.eval.lme_v2_adapter` /
+`run_lme_v2`) that flattens trajectory text (goal, thought, action, URL,
+clipped accessibility tree) into Backstory sessions. It is **not** an
+official LME-V2 evaluation: the official harness scores multimodal web
+and enterprise agent trajectories (up to 500 trajectories / 115M tokens)
+and this project ignores screenshots. LongMemEval-S remains the
+benchmark that matches conversational memory. Do not report adapter
+output as an LME-V2 leaderboard number.
 
 BEAM is wired up and run on a slice (`backstory.eval.run_beam`). Unlike
 LME-V2 it is the same problem this project addresses: multi session

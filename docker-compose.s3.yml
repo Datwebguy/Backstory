@@ -1,0 +1,16 @@
+# Override for long local ingest (LME-S 500, BEAM). HydraDB's local
+# filesystem backend dies under sustained writes: hydra-db/hydradb#81.
+# Fill AWS_* in a sibling .env (see .env.example), then:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.s3.yml up -d
+#
+# Use a different bucket than the deployed Fly app.
+services:
+  hydradb:
+    environment:
+      CLOUD_PROVIDER: aws
+      AWS_BUCKET: ${AWS_BUCKET:?set AWS_BUCKET in .env}
+      AWS_ENDPOINT_URL_S3: ${AWS_ENDPOINT_URL_S3:?set AWS_ENDPOINT_URL_S3 in .env}
+      AWS_REGION: ${AWS_REGION:-auto}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?set AWS_ACCESS_KEY_ID in .env}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?set AWS_SECRET_ACCESS_KEY in .env}

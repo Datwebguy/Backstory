@@ -3,8 +3,23 @@ from __future__ import annotations
 from backstory.demo.scenarios import USER, QUESTIONS, all_sessions
 from backstory.engine.memory import MemoryEngine
 
+DEMO_NS = "demo:"
+
+
+def isolated_demo_key(user_key: str | None = None) -> str:
+    """Demo scenarios always live under the demo: namespace.
+
+    Never write seeded fiction into a real account key. Old graphs
+    ingested as bare `demo-user-ui` are not reused.
+    """
+    key = (user_key or USER).strip() or USER
+    if key.startswith(DEMO_NS):
+        return key
+    return f"{DEMO_NS}{key}"
+
 
 def load(engine: MemoryEngine, user_key: str = USER) -> None:
+    user_key = isolated_demo_key(user_key)
     marker = f"demo_loaded:{user_key}"
     if engine.sidecar.get_meta(marker) == "1":
         return
@@ -21,6 +36,7 @@ def load(engine: MemoryEngine, user_key: str = USER) -> None:
 
 
 def ask_all(engine: MemoryEngine, user_key: str = USER) -> list[dict]:
+    user_key = isolated_demo_key(user_key)
     out = []
     for item in QUESTIONS:
         answer = engine.ask(

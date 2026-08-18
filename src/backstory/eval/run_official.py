@@ -24,6 +24,20 @@ from backstory.eval.slice_lme import item_type, load_dataset, slice_items
 from backstory.hydra.client import HydraClient
 
 
+def warn_if_local_store(context: str) -> None:
+    """Long ingest dies the same way as hydra-db/hydradb#81 on local FS."""
+    provider = os.getenv("CLOUD_PROVIDER", "local").strip().lower()
+    if provider and provider != "local":
+        return
+    print(
+        f"WARNING [{context}]: HydraDB is probably on CLOUD_PROVIDER=local. "
+        "Short smoke runs are fine; a 500-question or BEAM ingest can hit "
+        "hydra-db/hydradb#81 (PutMode::Update not implemented). "
+        "For long runs use docker compose -f docker-compose.yml "
+        "-f docker-compose.s3.yml up -d after filling .env."
+    )
+
+
 def write_trace(path: Path, item: dict, answer, seeds: list[int]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -70,8 +84,24 @@ def main() -> int:
     parser.add_argument("--out-dir", default="runs/lme")
     parser.add_argument("--naive-graph", action="store_true")
     parser.add_argument("--skip-official-judge", action="store_true")
+    parser.add_argument(
+        "--judge-only",
+        action="store_true",
+        help="Score an existing hypotheses.jsonl with evaluate_qa.py gpt-4o; no ingest",
+    )
+    parser.add_argument("--hyp", default="", help="Hypothesis jsonl for --judge-only")
+    parser.add_argument(
+        "--heuristic-extract",
+        action="store_true",
+        help="Skip per-turn LLM extract; keep LLM answers and the official judge",
+    )
     args = parser.parse_args()
 
+    if args.judge_only:
+        hyp_path = Path(args.hyp or Path(args.out_dir) / "hypotheses.jsonl")
+        return _run_official_judge(hyp_path, args.dataset)
+
+    warn_if_local_store("longmemeval")
     items = load_dataset(Path(args.dataset))
     if args.ids:
         wanted = {part.strip() for part in args.ids.split(",") if part.strip()}
@@ -84,7 +114,10 @@ def main() -> int:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     data_dir = out_dir / "sidecar"
-    settings = Settings(backstory_data_dir=data_dir)
+    settings = Settings(
+        backstory_data_dir=data_dir,
+        backstory_llm_extract=not args.heuristic_extract,
+    )
     engine = MemoryEngine(settings=settings, hydra=HydraClient(settings))
     hyp_path = out_dir / "hypotheses.jsonl"
     traces_dir = out_dir / "traces"
@@ -133,17 +166,24 @@ def main() -> int:
 
     if args.skip_official_judge:
         return 0
+    return _run_official_judge(hyp_path, args.dataset)
+
+
+def _run_official_judge(hyp_path: Path, dataset: str) -> int:
+    if not hyp_path.exists():
+        print(f"Hypothesis file missing: {hyp_path}")
+        return 2
     if not os.getenv("OPENAI_API_KEY"):
         print("OPENAI_API_KEY missing: official evaluate_qa.py was not run.")
         print("Required: OPENAI_API_KEY and judge model gpt-4o (gpt-4o-2024-08-06).")
+        print("This is not an official LongMemEval number.")
         return 0
-
     cmd = [
         sys.executable,
         "vendor/longmemeval/evaluate_qa.py",
         "gpt-4o",
         str(hyp_path),
-        args.dataset,
+        dataset,
     ]
     print("OFFICIAL", " ".join(cmd), flush=True)
     return subprocess.call(cmd)

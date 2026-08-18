@@ -80,7 +80,11 @@ class MemoryEngine:
                 # preextracted is session-level; apply on last turn only
                 if idx == len(turns) - 1:
                     atoms = atoms_from_dicts(preextracted, occurred_at)
-            elif self.settings.openai_api_key and role in {"user", "assistant"}:
+            elif (
+                self.settings.openai_api_key
+                and self.settings.backstory_llm_extract
+                and role in {"user", "assistant"}
+            ):
                 # The LLM is an upgrade to extraction quality, never a
                 # requirement for storing a fact. A missing client
                 # library, a rate limit, or a provider outage must not

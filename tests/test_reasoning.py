@@ -42,6 +42,42 @@ def test_how_many_counts_distinct_objects_not_raw_facts():
     assert answer == "3"
 
 
+def test_how_many_ignores_stated_snippets():
+    # Heuristic extract stores each turn as a `stated` blob. Counting
+    # those rows is how the 12-slice reported 12/11/9 against gold 4/3/2.
+    blobs = [
+        _fact(
+            fact_id=10 + i,
+            predicate="stated",
+            object_text=f"Long assistant turn {i} that happens to mention Korean restaurants in my city.",
+            quote=f"Long assistant turn {i} that happens to mention Korean restaurants in my city.",
+        )
+        for i in range(8)
+    ]
+    restaurants = [
+        _fact(fact_id=1, object_text="Seoul Garden"),
+        _fact(fact_id=2, object_text="Kimchi House"),
+        _fact(fact_id=3, object_text="Bibim Bap Co"),
+        _fact(fact_id=4, object_text="Hanok BBQ"),
+    ]
+    decision = Decision("answer", "sufficient", blobs + restaurants)
+    answer = template_answer("How many Korean restaurants have I tried?", decision)
+    assert answer == "4"
+
+
+def test_template_answers_are_natural_sentences():
+    facts = [
+        _fact(fact_id=1, predicate="has", object_text="a sister named Ada", quote="I have a sister named Ada."),
+        _fact(fact_id=2, predicate="lives_in", object_text="London", quote="I live in London."),
+    ]
+    decision = Decision("answer", "sufficient", facts)
+    answer = template_answer("What do I know about myself?", decision)
+    assert "has a sister named Ada." not in answer
+    assert "Ada" in answer
+    assert "London" in answer
+    assert answer[0].isupper()
+
+
 def test_how_many_ignores_superseded_and_negated_facts():
     facts = [
         _fact(fact_id=1, object_text="Seoul Garden"),

@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backstory.api import auth
 from backstory.config import get_settings
-from backstory.demo.load_demo import load
+from backstory.demo.load_demo import isolated_demo_key, load
 from backstory.engine.memory import MemoryEngine
 from backstory.hydra.client import HydraClient
 
@@ -67,7 +67,7 @@ def _effective_user_key(user_key: str, scope: str) -> str:
     demo content, and the sandbox is still fully isolated per account
     (derived from the authenticated session, never client-chosen).
     """
-    return f"demo:{user_key}" if scope == "demo" else user_key
+    return isolated_demo_key(user_key) if scope == "demo" else user_key
 
 
 @app.get("/api/health")

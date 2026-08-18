@@ -29,6 +29,7 @@ from pathlib import Path
 from backstory.config import Settings
 from backstory.engine.memory import MemoryEngine
 from backstory.eval.beam_adapter import discover, load_conversation, load_questions
+from backstory.eval.run_official import warn_if_local_store
 from backstory.hydra.client import HydraClient
 
 JUDGE_PROMPT = """You are grading one answer from a memory system.
@@ -102,6 +103,7 @@ def main() -> int:
     parser.add_argument("--limit-questions", type=int, default=0, help="0 = all")
     parser.add_argument("--skip-judge", action="store_true")
     args = parser.parse_args()
+    warn_if_local_store("beam")
 
     settings = Settings()
     out_dir = Path(args.out_dir)

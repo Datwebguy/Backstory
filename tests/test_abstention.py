@@ -158,6 +158,49 @@ def test_why_question_includes_superseded_history_and_reasons():
     assert 32 in ids, "requirement fact should be included for a why question"
 
 
+def test_missing_conjunct_alternatives_abstain():
+    # Official _abs shape: which-first of two events, only one is on
+    # record. Named-entity detection is not required — the missing
+    # alternative is the engine signal.
+    facts = [
+        _fact(
+            fact_id=50,
+            predicate="completed",
+            object_text="fixing the fence",
+            qualifiers="",
+            quote="I just fixed that broken fence on the east side.",
+        ),
+    ]
+    decision = decide(
+        "Which task did I complete first, fixing the fence or purchasing three cows?",
+        facts,
+    )
+    assert decision.action == "abstain"
+    assert decision.reason.startswith("missing_conjunct")
+
+
+def test_both_alternatives_present_does_not_abstain():
+    facts = [
+        _fact(
+            fact_id=51,
+            predicate="attended",
+            object_text="Effective Time Management workshop",
+            quote="I attended the Effective Time Management workshop.",
+        ),
+        _fact(
+            fact_id=52,
+            predicate="attended",
+            object_text="Data Analysis using Python webinar",
+            quote="I participated in a webinar on Data Analysis using Python.",
+        ),
+    ]
+    decision = decide(
+        "Which event did I attend first, the Effective Time Management workshop or the Data Analysis using Python webinar?",
+        facts,
+    )
+    assert decision.action == "answer"
+
+
 def test_history_inclusion_does_not_widen_an_unrelated_question():
     # Guard: history is pulled in only via facts already judged
     # relevant, so an unrelated question must still abstain rather than

@@ -123,6 +123,10 @@ _PATTERNS = (
     (re.compile(r"personal best[^\d]{0,40}(\d{1,2}:\d{2})", re.I), "personal_best", "unique_state", "thing"),
     (re.compile(r"\bi (?:like|love|enjoy) ([^.,]{2,60})", re.I), "likes", "preference", "thing"),
     (re.compile(r"\bi (?:don't like|do not like|hate) ([^.,]{2,60})", re.I), "likes", "preference", "thing"),
+    (re.compile(r"\b(?:tried|visited)\s+([^.,]{2,50}?)\s+(?:korean\s+)?restaurant", re.I), "tried", "set_membership", "org"),
+    (re.compile(r"\bcommute[^\d]{0,40}(\d{1,3}\s*(?:minutes?|mins?|hours?)(?:\s+each way)?)", re.I), "commute", "unique_state", "thing"),
+    (re.compile(r"\b(?:daily commute is|commute is)\s+([^.,]{2,40})", re.I), "commute", "unique_state", "thing"),
+    (re.compile(r"\b(?:leading|led|lead)\s+(?:the\s+)?(?:['\"]([^'\"]{2,60})['\"]|([A-Z][^.,]{2,60}))", re.I), "leads", "set_membership", "thing"),
 )
 
 
@@ -141,7 +145,9 @@ def heuristic_extract(text: str, stated_at: str, speaker: str = "user") -> list[
         match = cre.search(cleaned)
         if not match:
             continue
-        obj = match.group(1).strip()
+        obj = next((g.strip() for g in match.groups() if g and g.strip()), "")
+        if not obj:
+            continue
         kind = "preference" if pclass == "preference" else "state"
         atoms.append(
             Atom(

@@ -1,9 +1,37 @@
 # BACKSTORY — LONGMEMEVAL VALIDATION REPORT
 
-Date: 2026-08-14  
+Date: 2026-08-18
+
 Architecture: **unchanged**. Failures below do not justify a schema or store swap.
 
-Official judge was **not** executed. `evaluate_qa.py` requires `OPENAI_API_KEY` and model `gpt-4o` (`gpt-4o-2024-08-06`). This machine has no key. Numbers below are **unofficial contains-match diagnostics** plus qualitative traces. They are not LongMemEval scores.
+Latest official run (2026-08-18, hybrid): heuristic extract + new
+abstention/counting engine + gpt-4o-mini answers + official
+`evaluate_qa.py gpt-4o` (`gpt-4o-2024-08-06`).
+
+```
+python -m backstory.eval.run_official `
+  --dataset data/lme/oracle_strat12.json --limit 0 `
+  --heuristic-extract --out-dir runs/lme/strat12_hybrid
+```
+
+| Official metric | Old hyps (pre-fix) | Hybrid re-ingest |
+|---|---|---|
+| Overall accuracy | 0.3333 (4/12) | **0.75 (9/12)** |
+| Abstention (`_abs`) | 0.0 (0/2) | **1.0 (2/2)** |
+| knowledge-update | 0.5 (1/2) | 1.0 (2/2) |
+| temporal-reasoning (includes 2 `_abs`) | 0.5 (2/4) | 1.0 (4/4) |
+| multi-session | 0.0 (0/2) | 0.5 (1/2) |
+| single-session-user | 0.5 (1/2) | 1.0 (2/2) |
+| single-session-preference | 0.0 (0/2) | 0.0 (0/2) |
+
+Artifact: `runs/lme/strat12_hybrid/hypotheses.jsonl.eval-results-gpt-4o`
+
+This is **not** a LongMemEval-S 500 score. It is not a claim that
+Backstory beats RAG. Three official fails remain: clothing count
+(`0a995998`), Premiere preference, Sony preference.
+
+Earlier same-day baseline on stale template hyps:
+`runs/lme/strat12/hyp_backstory.jsonl.eval-results-gpt-4o` (4/12).
 
 ## 1. Exact commands
 
@@ -19,8 +47,8 @@ python -m backstory.eval.run_official --dataset data/lme/longmemeval_oracle.json
 python -m backstory.eval.slice_lme --dataset data/lme/longmemeval_oracle.json --per-type 2 --out data/lme/oracle_strat12.json
 python -m backstory.eval.run_compare
 
-# official judge (failed: no key)
-python vendor/longmemeval/evaluate_qa.py gpt-4o runs/lme/strat12/hyp_backstory.jsonl data/lme/oracle_strat12.json
+# official hybrid re-ingest + judge (ran 2026-08-18; gpt-4o-2024-08-06; 9/12)
+python -m backstory.eval.run_official --dataset data/lme/oracle_strat12.json --limit 0 --heuristic-extract --out-dir runs/lme/strat12_hybrid
 ```
 
 Official README contract used:
@@ -39,8 +67,8 @@ Hypothesis format written: one jsonl line per item, `{question_id, hypothesis}`.
 | Dataset | `xiaowu0162/longmemeval-cleaned` `longmemeval_oracle.json` (500 items, 15,388,478 bytes) |
 | Why oracle first | Official README’s first eval command uses oracle; only evidence sessions, not 115k fillers |
 | HydraDB | `ghcr.io/hydra-db/hydradb:latest` local Docker, `/readyz` 200 |
-| Extract / answer | heuristic extract + template ranker (no LLM — no API key) |
-| Official judge | **blocked** — `OpenAIError: api_key must be set` |
+| Extract / answer | hybrid: heuristic extract, gpt-4o-mini answers |
+| Official judge | **ran** — `gpt-4o-2024-08-06`, overall **0.75** on this 12-slice |
 | Required for official score | `OPENAI_API_KEY`; judge `gpt-4o`; optional org `OPENAI_ORGANIZATION` |
 | Required for LLM extract/answer | same key (or compatible `OPENAI_BASE_URL`) plus extract/answer models |
 
@@ -53,9 +81,9 @@ Main: 12 oracle items, 2 each of knowledge-update, temporal-reasoning, multi-ses
 
 ## 4–6. Results
 
-**Official gpt-4o judge: not run.**
+**Official gpt-4o judge: 4/12 (0.3333) on these hyps. Abstention 0/2.**
 
-Unofficial contains-match (too loose; can fire on words like “and”). Use only to locate failures.
+Unofficial contains-match (too loose; can fire on words like “and”). Use only to locate failures. It happened to match the official overall on this slice (also 4/12) but not always the same items.
 
 | System | n | unofficial hit | unofficial acc |
 |---|---|---|---|

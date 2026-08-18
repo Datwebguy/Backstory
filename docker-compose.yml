@@ -19,9 +19,10 @@
 #   AWS_ACCESS_KEY_ID=<key>
 #   AWS_SECRET_ACCESS_KEY=<secret>
 #
-# docker compose reads that .env automatically. Use a *different* bucket
-# from the deployed app: two graph nodes writing one bucket will fight
-# over the same writer lease.
+# docker compose reads that .env automatically. For a ready-made
+# override see docker-compose.s3.yml (`make hydra-s3`). Use a
+# *different* bucket from the deployed app: two graph nodes writing
+# one bucket will fight over the same writer lease.
 services:
   hydradb:
     image: ghcr.io/hydra-db/hydradb:latest
