@@ -39,6 +39,8 @@
       background: var(--cream);
       color: var(--cocoa);
       font: 17px/1.5 var(--geist);
+      /* drifting cards must never be able to widen the page */
+      overflow-x: hidden;
     }
     a { color: inherit; }
     @keyframes rise {
@@ -76,8 +78,20 @@
       transition: transform .22s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, color .18s ease, box-shadow .22s ease;
     }
     .btn:hover { transform: translateY(-3px) scale(1.03); }
-    .cap-card:hover { transform: translateY(-4px) scale(1.015); }
-    .pipe-step:hover { transform: translateY(-5px) scale(1.02); border-color: var(--orange); }
+    .cap-card:hover { transform: translateY(-6px) scale(1.02); }
+    /* Cards lift to meet the cursor and settle back when it leaves. The
+       spring easing on the way up and a slower ease on the way down is
+       what makes them feel like they are following the pointer rather
+       than snapping between two states. */
+    .pipe-step {
+      transition: transform .42s cubic-bezier(.22,.9,.3,1), border-color .25s ease, box-shadow .42s ease;
+    }
+    .pipe-step:hover {
+      transform: translateY(-14px) scale(1.03);
+      border-color: var(--orange);
+      box-shadow: 0 16px 34px rgba(43,26,7,.14);
+      transition: transform .32s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, box-shadow .32s ease;
+    }
     .reveal { opacity: 0; transform: translateY(32px) scale(.96); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
     .reveal.in { opacity: 1; transform: none; }
     .pipeline .reveal:nth-child(1) { transition-delay: 0s; }
@@ -210,24 +224,307 @@
     .cap-card .go { display: block; margin-top: 14px; font-size: 13.5px; color: var(--orange); font-weight: 500; }
 
     /* Footer band */
-    footer.band {
-      margin: 0 28px 28px;
-      background: var(--orange);
-      color: var(--cream);
-      border-radius: var(--r-footer) 18px 18px var(--r-footer);
-      padding: 40px 44px;
+
+    /* ---- Conversation showcase -------------------------------------
+       Real transcripts, produced by the engine and pasted in verbatim,
+       rather than mockups of what the product might say. */
+    /* Scatter: the heading sits in the middle and real transcripts drift
+       around it, so the section shows the product rather than describing
+       it. Falls back to a plain stack below 980px, where absolute
+       positioning would collide with the copy. */
+    .scatter {
+      position: relative;
+      min-height: 900px;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
+      justify-content: center;
+      isolation: isolate;
+    }
+    .scatter-center {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+      max-width: 30ch;
+      padding: 26px 22px;
+      background: radial-gradient(ellipse at center, var(--cream) 58%, rgba(253,251,249,0) 78%);
+    }
+    .scatter-center .section-title { margin-bottom: 12px; }
+    .scatter-center .section-sub { margin: 0 auto; }
+    .float {
+      position: absolute;
+      width: 268px;
+      z-index: 1;
+      animation: drift var(--dur, 9s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+      will-change: transform;
+    }
+    .float:hover { z-index: 4; }
+    .float .convo { box-shadow: 0 10px 34px rgba(43, 26, 7, .10); }
+    /* Each card keeps its own resting tilt, and drift nudges it around
+       that angle rather than snapping it upright. */
+    @keyframes drift {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); }
+      50%      { transform: translate3d(var(--dx, 0px), var(--dy, -16px), 0) rotate(calc(var(--rot, 0deg) + var(--dr, 1.5deg))); }
+    }
+    .float .convo { transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease; }
+    .float:hover .convo { transform: scale(1.04); box-shadow: 0 18px 46px rgba(43, 26, 7, .18); }
+
+    /* Offsets stay inside the container: a negative inset would push the
+       drifting card past the viewport edge and add a horizontal
+       scrollbar on narrower desktops. */
+    .f1 { top: 4%;    left: 1%;   --rot: -5deg; --dur: 9s;   --dy: -18px; --dx: 6px;  --dr: 2deg; }
+    .f2 { top: 2%;    right: 1%;  --rot: 4deg;  --dur: 11s;  --dy: -22px; --dx: -8px; --dr: -2deg; --delay: -2s; }
+    .f3 { top: 39%;   left: 0;    --rot: 3deg;  --dur: 10s;  --dy: -14px; --dx: 10px; --dr: -1.5deg; --delay: -4s; }
+    .f4 { top: 42%;   right: 0;   --rot: -4deg; --dur: 12s;  --dy: -20px; --dx: -6px; --dr: 2deg; --delay: -1s; }
+    .f5 { bottom: 3%; left: 9%;   --rot: 5deg;  --dur: 10.5s;--dy: -16px; --dx: 8px;  --dr: -2deg; --delay: -3s; }
+    .f6 { bottom: 2%; right: 10%; --rot: -3deg; --dur: 9.5s; --dy: -18px; --dx: -10px;--dr: 1.5deg; --delay: -5s; }
+
+    /* Compact cards used in the scatter: one question, one real answer. */
+    .convo.mini .convo-body { padding: 14px 13px 13px; gap: 9px; }
+    .convo.mini .bubble { font-size: 13px; padding: 8px 11px; }
+    .convo.mini .memchip { font-size: 11px; padding: 3px 9px; }
+    .convo.mini .convo-title { font-size: 10.5px; }
+
+    .convo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 20px;
     }
-    footer.band .line1 { font-family: var(--gelica); font-size: 24px; font-weight: 600; }
-    footer.band .line2 { font-family: var(--geist); font-size: 14px; opacity: .85; margin-top: 6px; }
-    footer.band .btn { background: var(--cream); border-color: var(--cream); }
-    footer.band .btn:hover { color: var(--sienna); }
+    .convo {
+      background: var(--cream);
+      border: 1.5px solid var(--charcoal);
+      border-radius: var(--r-cards);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .convo-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--dew);
+    }
+    .convo-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.25px solid var(--charcoal); background: var(--cream); flex: none; }
+    .convo-dot.live { background: var(--orange); }
+    .convo-title {
+      font-family: var(--geist);
+      font-size: 12px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+    .convo-body { padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .turn { display: flex; flex-direction: column; max-width: 88%; }
+    .turn.user { align-self: flex-end; align-items: flex-end; }
+    .turn.bot { align-self: flex-start; }
+    .bubble {
+      font-family: var(--geist);
+      font-size: 14.5px;
+      line-height: 1.45;
+      padding: 10px 14px;
+      border-radius: 16px 16px 4px 16px;
+      background: var(--charcoal);
+      color: var(--cream);
+    }
+    .turn.bot .bubble {
+      background: var(--dew);
+      color: var(--cocoa);
+      border: 1px solid var(--line);
+      border-radius: 16px 16px 16px 4px;
+    }
+    .turn .when { font-family: var(--geist); font-size: 11px; color: var(--faint, #9a9287); margin-top: 4px; }
+    .turn.abstain .bubble { background: var(--cream); border: 1.5px dashed var(--sienna); color: var(--cocoa); }
+    .memchip {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      font-family: var(--geist);
+      font-size: 12px;
+      color: var(--sienna);
+      border: 1px solid var(--accent-soft, #ffe3d2);
+      background: #fff6f0;
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    /* Staged reveal: turns arrive in order, then the answer, so a card
+       reads like the conversation happening rather than a static block. */
+    .convo .turn, .convo .memchip { opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .45s ease; }
+    .convo.played .turn, .convo.played .memchip { opacity: 1; transform: none; }
+    .convo.played .turn:nth-child(1) { transition-delay: .05s; }
+    .convo.played .turn:nth-child(2) { transition-delay: .35s; }
+    .convo.played .turn:nth-child(3) { transition-delay: .65s; }
+    .convo.played .turn:nth-child(4) { transition-delay: .95s; }
+    .convo.played .turn:nth-child(5) { transition-delay: 1.25s; }
+    .convo.played .turn:nth-child(6) { transition-delay: 1.55s; }
+    .convo.played .memchip { transition-delay: 1.8s; }
+    .typing { display: inline-flex; gap: 4px; align-items: center; padding: 12px 14px; }
+    .typing span {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+      animation: blink 1.2s infinite ease-in-out;
+    }
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
 
+    /* ---- FAQ -------------------------------------------------------- */
+    .faq { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .faq details {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 2px;
+    }
+    .faq summary {
+      cursor: pointer;
+      list-style: none;
+      font-family: var(--gelica);
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--cocoa);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: "+";
+      font-family: var(--geist);
+      font-size: 22px;
+      color: var(--orange);
+      transition: transform .25s ease;
+      line-height: 1;
+    }
+    .faq details[open] summary::after { transform: rotate(45deg); }
+    .faq p { margin: 12px 0 0; color: var(--muted); font-size: 16px; max-width: 60ch; }
+
+    /* ---- Footer -----------------------------------------------------
+       Not a sign off block. The footer renders an actual supersede
+       chain: the same fact at three points in time, the superseded
+       values kept and dimmed, the current one lit. It closes the page
+       by doing the thing the product does. */
+    footer.site-footer {
+      margin: 72px 28px 28px;
+      background: var(--cocoa);
+      color: var(--cream);
+      border-radius: 34px;
+      padding: 54px 46px 26px;
+      position: relative;
+      overflow: hidden;
+    }
+    .foot-eyebrow {
+      font-family: var(--geist);
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(253,251,249,.5);
+      margin: 0 0 26px;
+    }
+    .chain { position: relative; padding: 6px 0 4px; }
+    .chain-rail {
+      position: absolute;
+      top: 15px;
+      left: 7px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(253,251,249,.28), var(--orange));
+      width: 0;
+      transition: width 1.5s cubic-bezier(.2,.8,.2,1) .2s;
+    }
+    .site-footer.in .chain-rail { width: var(--rail-w, 70%); }
+    .chain-nodes { display: flex; flex-wrap: wrap; gap: 34px 64px; position: relative; }
+    .node { position: relative; padding-left: 0; opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+    .site-footer.in .node { opacity: 1; transform: none; }
+    .site-footer.in .node:nth-child(1) { transition-delay: .35s; }
+    .site-footer.in .node:nth-child(2) { transition-delay: .7s; }
+    .site-footer.in .node:nth-child(3) { transition-delay: 1.05s; }
+    .node .pip {
+      width: 15px; height: 15px; border-radius: 50%;
+      border: 2px solid rgba(253,251,249,.45);
+      background: var(--cocoa);
+      display: block; margin-bottom: 14px;
+    }
+    .node.current .pip { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 0 0 rgba(255,111,30,.55); animation: pulse 2.6s ease-out infinite 1.4s; }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,111,30,.5); }
+      70%  { box-shadow: 0 0 0 14px rgba(255,111,30,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,111,30,0); }
+    }
+    .node .val {
+      font-family: var(--gelica);
+      font-size: clamp(20px, 2.4vw, 27px);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: rgba(253,251,249,.42);
+      line-height: 1.15;
+    }
+    .node.current .val { color: var(--cream); }
+    .node .meta { font-family: var(--geist); font-size: 12.5px; margin-top: 7px; color: rgba(253,251,249,.4); }
+    .node.current .meta { color: var(--orange); }
+    .node .tag {
+      display: inline-block; margin-top: 8px;
+      font-family: var(--geist); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+      color: rgba(253,251,249,.38);
+      border: 1px solid rgba(253,251,249,.2);
+      border-radius: 999px; padding: 2px 9px;
+    }
+    .node.current .tag { color: var(--cocoa); background: var(--orange); border-color: var(--orange); }
+
+    .chain-ask {
+      margin: 34px 0 0;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      font-family: var(--geist); font-size: 15px; color: rgba(253,251,249,.62);
+    }
+    .chain-ask .q {
+      background: rgba(253,251,249,.08);
+      border: 1px solid rgba(253,251,249,.16);
+      border-radius: 14px 14px 14px 4px;
+      padding: 9px 14px; color: var(--cream);
+    }
+    .chain-ask .arrow { color: var(--orange); }
+    .chain-ask .a { color: var(--cream); font-weight: 600; }
+
+    .foot-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--orange); color: var(--cocoa);
+      border: 1.5px solid var(--orange);
+      border-radius: var(--r-buttons);
+      padding: 13px 26px;
+      font-family: var(--geist); font-size: 15px; font-weight: 600;
+      text-decoration: none;
+      transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .18s ease, color .18s ease;
+    }
+    .foot-cta:hover { transform: translateY(-2px); background: var(--cream); border-color: var(--cream); color: var(--cocoa); }
+    .foot-rule { height: 1px; background: rgba(253,251,249,.14); margin: 40px 0 18px; }
+    .foot-bottom {
+      display: flex; flex-wrap: wrap; gap: 14px 26px;
+      justify-content: space-between; align-items: center;
+      font-family: var(--geist); font-size: 13.5px; color: rgba(253,251,249,.55);
+    }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 20px; }
+    .foot-links a { color: rgba(253,251,249,.62); text-decoration: none; transition: color .15s ease; }
+    .foot-links a:hover { color: var(--orange); }
+    .foot-brand { display: flex; align-items: center; gap: 8px; font-family: var(--gelica); font-weight: 600; color: var(--cream); font-size: 16px; }
+
+    @media (max-width: 980px) {
+      /* Absolute scatter has nowhere to go on a narrow screen, so the
+         cards become an ordinary stack under the heading. */
+      .scatter { display: block; min-height: 0; }
+      .scatter-center { max-width: none; text-align: left; padding: 0; background: none; margin-bottom: 24px; }
+      .scatter-center .section-sub { margin: 0; }
+      .float {
+        position: static;
+        width: auto;
+        animation: none;
+        margin-bottom: 16px;
+      }
+      .float .convo { transform: none !important; }
+    }
     @media (max-width: 900px) {
+      .convo-grid { grid-template-columns: 1fr; }
       .hero-grid { grid-template-columns: 1fr; }
       .hero-art { display: none; }
       .pipeline { grid-template-columns: 1fr 1fr; }
@@ -235,10 +532,32 @@
     }
     @media (max-width: 560px) {
       header.site { padding: 18px 20px; }
+      .wrap { padding: 0 20px; }
       .hero { padding-top: 24px; }
-      section.block { padding: 48px 0; }
+      section.block { padding: 44px 0; }
       .pipeline { grid-template-columns: 1fr; }
-      footer.band { margin: 0 16px 16px; padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+      .convo-body { padding: 14px 12px 12px; }
+      .bubble { font-size: 14px; }
+      .turn { max-width: 94%; }
+      .faq summary { font-size: 17px; }
+      footer.site-footer { margin: 44px 16px 16px; padding: 34px 22px 22px; border-radius: 26px; }
+      /* the chain reads top to bottom on a phone, with the rail running
+         down the left instead of across */
+      .chain-nodes { flex-direction: column; gap: 22px; }
+      .chain-rail { display: none; }
+      .node { padding-left: 26px; }
+      .node .pip { position: absolute; left: 0; top: 4px; margin: 0; }
+      .node .val { font-size: 21px; }
+      .foot-cta { width: 100%; justify-content: center; }
+      .foot-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .chain-ask { font-size: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .convo .turn, .convo .memchip { opacity: 1; transform: none; transition: none; }
+      .typing span { animation: none; }
+      .float { animation: none; }
+      .sticker--bolt, .sticker--sparkle, .sticker--node,
+      .fact-card, .hand-arrow { animation: none; }
     }
   </style>
 </head>
@@ -305,6 +624,82 @@
       </div>
     </section>
 
+    <section class="block" id="conversations">
+      <div class="scatter">
+        <div class="scatter-center">
+          <p class="kicker">real conversations</p>
+          <h2 class="section-title">this is what it actually answers.</h2>
+          <p class="section-sub">Every exchange around this is verbatim output from the running engine. Nothing here was written for the page.</p>
+        </div>
+
+        <div class="float f1 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">a fact that changed</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">Where do I work now?</div></div>
+              <div class="turn bot"><div class="bubble">You work at <strong>Company B</strong> (as of 2023-06-23). Earlier, you were at Company A on 2023-02-04.</div></div>
+              <span class="memchip">based on 3 memories</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="float f2 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">scattered across sessions</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">What do I know about Priya?</div></div>
+              <div class="turn bot"><div class="bubble">Priya is the tech lead on the Atlas migration (2023-01-12). She is based in the Berlin office (2023-03-08). She now owns the billing API rewrite (2023-07-02).</div></div>
+              <span class="memchip">3 sessions, one answer</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="float f3 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">refusing to guess</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">How many services run on the 64 GB instance?</div></div>
+              <div class="turn bot abstain"><div class="bubble">I don't have enough information from your previous conversations to answer that.</div></div>
+              <span class="memchip">related facts existed, the asked one did not</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="float f4 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">why, not just what</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">Why did we choose Postgres?</div></div>
+              <div class="turn bot"><div class="bubble">We switched to Postgres after an initial plan for MongoDB, and the strong consistency requirement for billing records is what settled it.</div></div>
+              <span class="memchip">based on 5 memories</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="float f5 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">across a gap</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">What is my birthdate?</div></div>
+              <div class="turn bot"><div class="bubble">Your birthdate is March 12, 1995.</div></div>
+              <span class="memchip">two facts, months apart</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="float f6 reveal">
+          <article class="convo mini played">
+            <div class="convo-head"><span class="convo-dot live"></span><span class="convo-dot"></span><span class="convo-dot"></span><span class="convo-title">simple recall</span></div>
+            <div class="convo-body">
+              <div class="turn user"><div class="bubble">What is my name?</div></div>
+              <div class="turn bot"><div class="bubble">Your name is Eben, as stated on 2026-08-11.</div></div>
+              <span class="memchip">based on 1 memory</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="block" id="how">
       <p class="kicker">how it works</p>
       <h2 class="section-title">every message becomes a graph fact, not just tokens in a transcript.</h2>
@@ -345,14 +740,93 @@
         </a>
       </div>
     </section>
+
+    <section class="block" id="faq">
+      <p class="kicker">questions</p>
+      <h2 class="section-title">the things worth asking first.</h2>
+      <div class="faq reveal">
+        <details>
+          <summary>What happens when a fact changes?</summary>
+          <p>The old value is not overwritten. The new fact supersedes it, and both stay on the graph with their dates, so the current answer and the history behind it are both available. That is why the work question above can answer Company B and still show Company A.</p>
+        </details>
+        <details>
+          <summary>What does it do when it does not know?</summary>
+          <p>It says so. Retrieval can return related facts and the engine will still refuse if the specific thing asked about is missing, rather than answering from something adjacent. Refusing correctly is treated as a feature, not a failure.</p>
+        </details>
+        <details>
+          <summary>Is my memory private to me?</summary>
+          <p>Yes. Every account gets its own isolated graph, keyed to the signed in Google account and enforced on the server rather than in the browser. Nobody sees anyone else's facts, including the demo scenarios.</p>
+        </details>
+        <details>
+          <summary>Why a graph database rather than a vector store?</summary>
+          <p>Because the hard part is not finding similar text, it is knowing which version of a fact is current, what it replaced, and what contradicts it. Those are edges. On a vector store, superseded and current text look equally similar to a query.</p>
+        </details>
+        <details>
+          <summary>Does it need an LLM to work?</summary>
+          <p>No. An LLM improves how facts are extracted and how answers read, but the memory itself is graph operations. With no model configured the engine still stores, versions, retrieves and abstains correctly, and falls back automatically if a provider fails.</p>
+        </details>
+      </div>
+    </section>
   </main>
 
-  <footer class="band reveal">
-    <div>
-      <div class="line1">tell it once. it still knows.</div>
-      <div class="line2">graph native memory · built on HydraDB</div>
+  <footer class="site-footer reveal">
+    <p class="foot-eyebrow">one fact, three points in time</p>
+
+    <div class="chain">
+      <span class="chain-rail"></span>
+      <div class="chain-nodes">
+        <div class="node">
+          <span class="pip"></span>
+          <div class="val">Company A</div>
+          <div class="meta">4 February</div>
+          <span class="tag">superseded</span>
+        </div>
+        <div class="node">
+          <span class="pip"></span>
+          <div class="val">unemployed</div>
+          <div class="meta">17 May</div>
+          <span class="tag">superseded</span>
+        </div>
+        <div class="node current">
+          <span class="pip"></span>
+          <div class="val">Company B</div>
+          <div class="meta">23 June</div>
+          <span class="tag">current</span>
+        </div>
+      </div>
     </div>
-    <a class="btn" href="/app">open backstory →</a>
+
+    <p class="chain-ask">
+      <span class="q">Where do I work now?</span>
+      <span class="arrow">&rarr;</span>
+      <span class="a">Company B.</span>
+      <span>The other two are still on record.</span>
+    </p>
+
+    <div style="margin-top:30px">
+      <a class="foot-cta" href="/app">open backstory &rarr;</a>
+    </div>
+
+    <div class="foot-rule"></div>
+    <div class="foot-bottom">
+      <div class="foot-brand">
+        <svg width="22" height="22" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="6" cy="7" r="3.4" fill="none" stroke="#fdfbf9" stroke-width="1.5"/>
+          <circle cx="20" cy="7" r="3.4" fill="none" stroke="#fdfbf9" stroke-width="1.5"/>
+          <circle cx="13" cy="20" r="3.6" fill="#ff6f1e" stroke="#fdfbf9" stroke-width="1.5"/>
+          <path d="M8.6 9.2 11.3 17M17.4 9.2 14.7 17M9.4 7H16.6" stroke="#fdfbf9" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        backstory
+      </div>
+      <nav class="foot-links">
+        <a href="#conversations">conversations</a>
+        <a href="#how">how it works</a>
+        <a href="#faq">questions</a>
+        <a href="https://github.com/Datwebguy/Backstory" target="_blank" rel="noopener">source</a>
+        <a href="/app">open app</a>
+      </nav>
+      <div>graph native memory, built on HydraDB</div>
+    </div>
   </footer>
 
   <script>
@@ -360,11 +834,30 @@
       entries.forEach(function (e) {
         if (e.isIntersecting) {
           e.target.classList.add("in");
+          // Conversation cards additionally play their turns in order,
+          // so the exchange reads as it happened rather than landing all
+          // at once.
+          if (e.target.classList.contains("convo")) e.target.classList.add("played");
           io.unobserve(e.target);
         }
       });
     }, { threshold: 0.15 });
     document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+    // The chain rail should stop at the current value, not run past it.
+    // Measured from the pips so it stays correct at any width or font.
+    function sizeChainRail() {
+      var rail = document.querySelector(".chain-rail");
+      var pips = document.querySelectorAll(".chain .node .pip");
+      if (!rail || pips.length < 2) return;
+      var first = pips[0].getBoundingClientRect();
+      var last = pips[pips.length - 1].getBoundingClientRect();
+      if (last.left < first.left) return;            // stacked on mobile
+      rail.style.setProperty("--rail-w", (last.left - first.left + last.width / 2) + "px");
+    }
+    sizeChainRail();
+    window.addEventListener("resize", sizeChainRail);
+    window.addEventListener("load", sizeChainRail);
   </script>
 </body>
 </html>
