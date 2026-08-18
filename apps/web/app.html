@@ -8,6 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,560;9..144,600;9..144,640;9..144,680&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("backstory-theme");
+        var dark = saved ? saved === "dark"
+                         : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       /* Superr-style tokens */
@@ -32,13 +42,27 @@
       --shadow-lg: 0 2px 20px rgba(0, 0, 0, 0.06);
       --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.25);
 
+      /* Semantic tokens. Split deliberately: --ink was both the body
+         text colour and the filled chat bubble background, and --cream
+         was both the page and the text sitting on that bubble, so a
+         naive inversion made bubble text invisible. */
+      --bg: var(--cream);
+      --card: var(--cream);
+      --surface: var(--dew);
+      --text: var(--charcoal);
+      --text-dim: #6f675a;
+      --border: var(--charcoal);
+      --hairline: rgba(23, 23, 23, 0.14);
+      --bubble-bg: var(--charcoal);
+      --bubble-fg: #f7f3ec;
+
       /* legacy aliases so existing component rules pick up the new system */
-      --paper: var(--cream);
-      --paper-2: var(--dew);
-      --ink: var(--charcoal);
-      --muted: #6f675a;
+      --paper: var(--bg);
+      --paper-2: var(--surface);
+      --ink: var(--text);
+      --muted: var(--text-dim);
       --faint: #9a9287;
-      --line: rgba(23, 23, 23, 0.14);
+      --line: var(--hairline);
       --accent: var(--orange);
       --accent-soft: #ffe3d2;
       --ok: #2f4a38;
@@ -46,6 +70,26 @@
       --sans: var(--geist);
       --serif: var(--gelica);
     }
+
+    /* Dark theme, matching the landing page exactly so moving between
+       the two does not feel like two products. */
+    :root[data-theme="dark"] {
+      --bg: #17130f;
+      --card: #1e1813;
+      --surface: #241d17;
+      --text: #f6f0e9;
+      --text-dim: #a99c8d;
+      --border: #4a3f34;
+      --hairline: rgba(246, 240, 233, 0.14);
+      --bubble-bg: #efe7dd;
+      --bubble-fg: #17130f;
+      --faint: #8d8073;
+      --accent-soft: #4a2f1d;
+      --shadow-lg: 0 2px 20px rgba(0, 0, 0, 0.5);
+      --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+    :root { color-scheme: light; }
+    :root[data-theme="dark"] { color-scheme: dark; }
     * { box-sizing: border-box; }
     /* Author display:flex/inline-flex rules tie with the UA [hidden]
        rule at equal specificity and win on source order, so JS setting
@@ -82,7 +126,7 @@
       font-size: 21px;
       font-weight: 600;
       letter-spacing: -0.02em;
-      color: var(--cocoa);
+      color: var(--text);
       text-decoration: none;
       transition: opacity .15s ease;
     }
@@ -96,9 +140,9 @@
     .ghost {
       display: inline-flex;
       align-items: center;
-      background: var(--cream);
-      border: 1.5px solid var(--charcoal);
-      color: var(--charcoal);
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      color: var(--text);
       padding: 9px 18px;
       border-radius: var(--r-buttons);
       font-family: var(--geist);
@@ -107,14 +151,14 @@
       text-decoration: none;
       box-shadow: var(--shadow-subtle);
     }
-    .ghost:hover { border-color: var(--orange); color: var(--sienna); background: var(--cream); }
+    .ghost:hover { border-color: var(--orange); color: var(--sienna); background: var(--card); }
     .ghost.new-chat { font-weight: 600; border-width: 2px; }
     .btn {
       display: inline-flex;
       align-items: center;
-      background: var(--cream);
-      border: 1.5px solid var(--charcoal);
-      color: var(--charcoal);
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      color: var(--text);
       padding: 11px 22px;
       border-radius: var(--r-buttons);
       font-family: var(--geist);
@@ -126,8 +170,8 @@
     .btn:hover { border-color: var(--orange); color: var(--sienna); }
     .btn-lg { padding: 14px 28px; font-size: 16px; margin-top: 8px; }
     .user-chip { display: flex; align-items: center; gap: 8px; }
-    .user-chip img { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--charcoal); }
-    .user-chip span { font-family: var(--geist); font-size: 14px; color: var(--cocoa); }
+    .user-chip img { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); }
+    .user-chip span { font-family: var(--geist); font-size: 14px; color: var(--text); }
     .stage {
       max-width: 880px;
       width: 100%;
@@ -148,7 +192,7 @@
       font-size: 26px;
       font-weight: 600;
       letter-spacing: -0.02em;
-      color: var(--cocoa);
+      color: var(--text);
       margin: 0 0 6px;
     }
     .hero-copy--app p {
@@ -164,8 +208,8 @@
     }
     .scenario {
       text-align: left;
-      background: var(--dew);
-      border: 1.5px solid var(--charcoal);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: var(--r-cards);
       padding: 14px 16px 12px;
       color: inherit;
@@ -194,8 +238,8 @@
       max-width: 760px;
       margin: 0 auto;
       padding: 10px 16px;
-      background: var(--dew);
-      border: 1.5px solid var(--charcoal);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: var(--r-cards);
       color: var(--muted);
       font-size: 13.5px;
@@ -204,8 +248,8 @@
     .msg { max-width: 92%; animation: rise .35s ease; }
     .msg.user { align-self: flex-end; }
     .msg.user .bubble {
-      background: var(--ink);
-      color: #f7f3ec;
+      background: var(--bubble-bg);
+      color: var(--bubble-fg);
       padding: 12px 16px;
       border-radius: 18px 18px 5px 18px;
     }
@@ -252,8 +296,8 @@
     .composer textarea {
       flex: 1;
       resize: none;
-      border: 1.5px solid var(--charcoal);
-      background: var(--cream);
+      border: 1.5px solid var(--border);
+      background: var(--card);
       border-radius: var(--r-inputs);
       padding: 14px 16px;
       min-height: 52px;
@@ -266,10 +310,10 @@
     .send {
       width: 52px;
       height: 52px;
-      border: 1.5px solid var(--charcoal);
+      border: 1.5px solid var(--border);
       border-radius: 50%;
-      background: var(--cream);
-      color: var(--charcoal);
+      background: var(--card);
+      color: var(--text);
       box-shadow: var(--shadow-subtle);
       flex: none;
       font-size: 18px;
@@ -288,8 +332,8 @@
       position: fixed;
       inset: 0 0 0 auto;
       width: min(420px, 100%);
-      background: var(--dew);
-      border-left: 1.5px solid var(--charcoal);
+      background: var(--surface);
+      border-left: 1.5px solid var(--border);
       box-shadow: var(--shadow);
       transform: translateX(104%);
       transition: transform .28s ease;
@@ -416,17 +460,35 @@
       .app.open-mem .stage { margin-right: 420px; }
       .app.open-mem header { margin-right: 420px; }
     }
-  </style>
+  
+    .theme-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; flex: none;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: var(--shadow-subtle);
+      transition: transform .2s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, color .18s ease;
+    }
+    .theme-toggle:hover { transform: translateY(-2px) scale(1.05); border-color: var(--orange); color: var(--orange); }
+    .theme-toggle svg { width: 17px; height: 17px; }
+    .theme-toggle .moon { display: none; }
+    :root[data-theme="dark"] .theme-toggle .sun { display: none; }
+    :root[data-theme="dark"] .theme-toggle .moon { display: block; }
+    @media (max-width: 560px) { .theme-toggle { width: 34px; height: 34px; } .theme-toggle svg { width: 15px; height: 15px; } }
+</style>
 </head>
 <body>
   <div class="app" id="app">
     <header>
       <a class="brand" href="/" aria-label="Backstory home">
         <svg class="brand-mark" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="6" cy="7" r="3.4" fill="#fdfbf9" stroke="#171717" stroke-width="1.5"/>
-          <circle cx="20" cy="7" r="3.4" fill="#fdfbf9" stroke="#171717" stroke-width="1.5"/>
-          <circle cx="13" cy="20" r="3.6" fill="#ff6f1e" stroke="#171717" stroke-width="1.5"/>
-          <path d="M8.6 9.2 11.3 17M17.4 9.2 14.7 17M9.4 7H16.6" stroke="#171717" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="6" cy="7" r="3.4" fill="var(--card)" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="20" cy="7" r="3.4" fill="var(--card)" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="13" cy="20" r="3.6" fill="#ff6f1e" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8.6 9.2 11.3 17M17.4 9.2 14.7 17M9.4 7H16.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
         </svg>
         backstory
       </a>
@@ -436,6 +498,15 @@
         </button>
         <button class="ghost" id="memBtn" type="button" hidden>
           <span class="lbl-full">what it remembers</span><span class="lbl-short">memory</span>
+        </button>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme">
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2"/>
+            <path d="M12 2.4v2.4M12 19.2v2.4M4.2 12H1.8M22.2 12h-2.4M5.6 5.6 7.3 7.3M16.7 16.7l1.7 1.7M18.4 5.6 16.7 7.3M7.3 16.7 5.6 18.4"/>
+          </svg>
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 13.4A8.2 8.2 0 1 1 10.6 4a6.6 6.6 0 0 0 9.4 9.4z"/>
+          </svg>
         </button>
         <div class="user-chip" id="userChip" hidden>
           <img id="userAvatar" alt="" />
@@ -506,6 +577,33 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
+
+// Theme toggle. The chosen theme is remembered per browser and the
+// system preference is only followed until the visitor picks one.
+(function () {
+  const root = document.documentElement;
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const label = () => {
+    const dark = root.getAttribute("data-theme") === "dark";
+    btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    btn.setAttribute("aria-pressed", String(dark));
+  };
+  label();
+  btn.addEventListener("click", () => {
+    const dark = root.getAttribute("data-theme") === "dark";
+    if (dark) root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", "dark");
+    try { localStorage.setItem("backstory-theme", dark ? "light" : "dark"); } catch (e) {}
+    label();
+  });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    try { if (localStorage.getItem("backstory-theme")) return; } catch (err) {}
+    if (e.matches) root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+    label();
+  });
+})();
 const thread = $("thread");
 const hero = $("hero");
 const signinGate = $("signinGate");
