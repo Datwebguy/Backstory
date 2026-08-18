@@ -246,6 +246,16 @@ class GraphMutator:
             return "add"
         if atom.predicate_class == "event":
             return "add"
+        # A new personal name replaces the old one. Two "my name is"
+        # statements are a correction, not two current names and not a
+        # contradiction to qualify at ask time.
+        if atom.predicate in {"name", "has_name", "full_name", "called"}:
+            newest = max(current, key=lambda r: r.get("stated_at") or "")
+            if _norm(newest.get("object_text") or "") == _norm(atom.object_text):
+                return "add"
+            if (atom.stated_at or "") < (newest.get("stated_at") or ""):
+                return "add_historical"
+            return "supersede"
         # unique_state / preference / instruction
         if atom.update_of or _looks_like_update(atom):
             # Out-of-order: if incoming is older than current, keep current and store history.

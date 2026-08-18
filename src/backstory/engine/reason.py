@@ -75,10 +75,10 @@ def template_answer(question: str, decision: Decision) -> str:
             if history:
                 extra = " Previously you lived in " + ", ".join(h.object_text for h in history) + "."
             return f"You live in {current.object_text}.{extra}"
-    if any(w in q for w in ("my name", "i called", "call me", "who am i")):
-        current = next((f for f in facts if f.is_current and f.predicate in NAME_PREDICATES), None)
-        if current:
-            return f"Your name is {current.object_text.strip().title()}."
+    if _is_name_question(q):
+        named = _name_answer(q, facts)
+        if named:
+            return named
     if "work" in q and "now" in q:
         current = next((f for f in facts if f.is_current and f.predicate.startswith("work")), None)
         if current:
@@ -112,6 +112,72 @@ def template_answer(question: str, decision: Decision) -> str:
     if quote:
         return _first_sentence(quote)
     return current[0].object_text
+
+
+def _is_name_question(q: str) -> bool:
+    return any(
+        w in q
+        for w in (
+            "my name", "my names", "i called", "call me", "who am i",
+            "first name", "second name", "last name", "middle name", "surname",
+        )
+    )
+
+
+def _display_name(text: str) -> str:
+    return " ".join((text or "").strip().split()).title()
+
+
+def _name_values(facts: list[RetrievedFact], *, current: bool | None) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    rows = facts
+    if current is True:
+        rows = [f for f in facts if f.is_current]
+    elif current is False:
+        rows = [f for f in facts if not f.is_current]
+    rows = sorted(rows, key=lambda f: f.stated_at or f.session_at)
+    for fact in rows:
+        if fact.predicate not in NAME_PREDICATES and "name is" not in (fact.object_text or "").lower() and "name is" not in (fact.quote or "").lower():
+            continue
+        raw = fact.object_text or ""
+        if fact.predicate not in NAME_PREDICATES:
+            match = re.search(r"(?:my name is|i'?m called|call me)\s+([^.,]{1,40})", raw + " " + (fact.quote or ""), re.I)
+            raw = match.group(1) if match else raw
+        label = _display_name(raw)
+        key = norm_text(label)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(label)
+    return out
+
+
+def _name_answer(q: str, facts: list[RetrievedFact]) -> str:
+    now = _name_values(facts, current=True)
+    was = [n for n in _name_values(facts, current=False) if n not in now]
+    if not now and was:
+        now, was = [was[-1]], was[:-1]
+    if not now:
+        return ""
+    if any(w in q for w in ("second name", "middle name", "last name", "surname", "first name")):
+        if len(now) >= 2:
+            return f"The names on record are {' and '.join(now)}."
+        if was:
+            return (
+                f"The name on record now is {now[-1]}. "
+                f"{was[-1]} is an earlier name, not a separate second name."
+            )
+        return f"The only name on record is {now[-1]}."
+    if "names" in q:
+        if was:
+            return f"{now[-1]} is current. Earlier: {', '.join(was)}."
+        if len(now) > 1:
+            return f"On record: {', '.join(now)}."
+        return f"The name on record is {now[-1]}."
+    if was:
+        return f"Your name is {now[-1]}. Earlier it was {was[-1]}."
+    return f"Your name is {now[-1]}."
 
 
 def _count_distinct_objects(question: str, facts: list[RetrievedFact]) -> int:

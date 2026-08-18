@@ -78,6 +78,18 @@ def test_template_answers_are_natural_sentences():
     assert answer[0].isupper()
 
 
+def test_name_questions_use_current_not_second_name():
+    older = _fact(fact_id=1, predicate="name", object_text="Eben", is_current=False, status="superseded")
+    newer = _fact(fact_id=2, predicate="name", object_text="Prince", stated_at="2023-08-01T00:00:00")
+    decision = Decision("answer", "sufficient", [older, newer])
+    assert template_answer("What is my name?", decision) == "Your name is Prince. Earlier it was Eben."
+    second = template_answer("What is my second name?", decision)
+    assert "Prince" in second
+    assert "second name is Prince" not in second.lower()
+    names = template_answer("What are my names?", decision)
+    assert "Prince" in names and "Eben" in names
+
+
 def test_about_me_answers_in_sentences():
     facts = [
         _fact(fact_id=1, predicate="name", object_text="Prince", quote="my name is Prince"),

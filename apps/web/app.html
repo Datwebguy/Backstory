@@ -1014,7 +1014,7 @@ function looksLikeChitchat(text) {
 }
 function chitchatReply(text) {
   const t = text.trim().toLowerCase();
-  if (/thank/.test(t)) return "Kept.";
+  if (/thank/.test(t)) return "You're welcome.";
   if (/bye|good night/.test(t)) return "I'll still have it when you come back.";
   return "Say more, or ask me what I already have.";
 }

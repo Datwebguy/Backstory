@@ -8,6 +8,7 @@ from typing import Any
 
 from backstory.config import Settings, get_settings
 from backstory.engine.abstain import ABSTAIN_TEXT, decide
+from backstory.engine.reason import _is_name_question
 from backstory.engine.extract import atoms_from_dicts, extract_with_llm, heuristic_extract
 from backstory.engine.mutate import GraphMutator
 from backstory.engine.normalize import Atom
@@ -146,7 +147,12 @@ class MemoryEngine:
         if decision.action == "abstain":
             return Answer(ABSTAIN_TEXT, decision.action, decision.reason, decision.facts)
         text = ""
-        if self.settings.openai_api_key:
+        # Name questions stay on the template. The LLM kept treating a
+        # later name as a "second name" and reading leftover greetings
+        # as missing evidence.
+        if _is_name_question(question):
+            text = template_answer(question, decision)
+        elif self.settings.openai_api_key:
             # Same reasoning as extraction: a provider failure should
             # degrade the wording, not lose the answer. The evidence pack
             # is already assembled from the graph at this point.
