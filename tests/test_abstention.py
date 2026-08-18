@@ -95,6 +95,37 @@ def test_false_premise_unmentioned_person_abstains():
     assert decision.reason.startswith("false_premise_entity")
 
 
+def test_own_name_from_stated_blob_is_relevant():
+    facts = [
+        _fact(
+            fact_id=60,
+            predicate="stated",
+            object_text="my name is Prince",
+            quote="my name is Prince",
+        ),
+    ]
+    assert decide("What is my name?", facts).action == "answer"
+    assert decide("what can you remember about me?", facts).action == "answer"
+
+
+def test_about_me_uses_self_facts_not_unrelated_noise():
+    facts = [
+        _fact(fact_id=61, predicate="name", object_text="Prince", quote="my name is Prince"),
+        _fact(fact_id=62, predicate="lives_in", object_text="Lagos", quote="I live in Lagos"),
+        _fact(
+            fact_id=63,
+            predicate="stated",
+            object_text="hello can you hear me",
+            quote="hello can you hear me",
+        ),
+    ]
+    decision = decide("What do you know about me?", facts)
+    assert decision.action == "answer"
+    ids = {f.fact_id for f in decision.facts}
+    assert 61 in ids and 62 in ids
+    assert 63 not in ids
+
+
 def test_synonym_and_stem_relevance():
     # Reported live: "MY BIRTHDAY IS MARCH 12" stored fine, but asking
     # "WHAT IS MY BIRTHDATE?" abstained, because relevance was an exact

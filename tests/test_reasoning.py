@@ -78,6 +78,17 @@ def test_template_answers_are_natural_sentences():
     assert answer[0].isupper()
 
 
+def test_about_me_answers_in_sentences():
+    facts = [
+        _fact(fact_id=1, predicate="name", object_text="Prince", quote="my name is Prince"),
+        _fact(fact_id=2, predicate="lives_in", object_text="Lagos", quote="I live in Lagos."),
+    ]
+    decision = Decision("answer", "sufficient", facts)
+    answer = template_answer("what can you remember about me?", decision)
+    assert "Prince" in answer
+    assert "Lagos" in answer
+
+
 def test_how_many_ignores_superseded_and_negated_facts():
     facts = [
         _fact(fact_id=1, object_text="Seoul Garden"),

@@ -10,7 +10,12 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from backstory.engine.abstain import ABSTAIN_TEXT, NAME_PREDICATES, Decision
+from backstory.engine.abstain import (
+    ABSTAIN_TEXT,
+    NAME_PREDICATES,
+    Decision,
+    asks_about_self,
+)
 from backstory.engine.normalize import norm_text
 from backstory.engine.retrieve import RetrievedFact
 
@@ -86,7 +91,7 @@ def template_answer(question: str, decision: Decision) -> str:
         if rest:
             return head + ". Also on record: " + "; ".join(rest) + "."
         return head + "."
-    if "what do i know" in q or "tell me about" in q:
+    if asks_about_self(question) or "what do i know" in q or "tell me about" in q:
         sentences = [_fact_sentence(f) for f in facts if f.is_current]
         return " ".join(s for s in sentences if s) or ABSTAIN_TEXT
     current = [f for f in facts if f.is_current] or facts

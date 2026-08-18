@@ -161,9 +161,15 @@ class MemoryEngine:
                 )
             except Exception:
                 text = ""
-        if not text:
-            text = template_answer(question, decision)
+        fallback = template_answer(question, decision)
+        if not text or (_llm_refused(text) and fallback != ABSTAIN_TEXT):
+            text = fallback
         return Answer(text, decision.action, decision.reason, decision.facts)
+
+
+def _llm_refused(text: str) -> bool:
+    t = (text or "").strip().lower()
+    return t.startswith("i do not have enough") or t.startswith("i don't have enough")
 
 
 def default_data_dir() -> Path:

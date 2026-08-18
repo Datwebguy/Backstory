@@ -980,7 +980,14 @@ const GREETING_RE = new RegExp(
 );
 function looksLikeGreeting(text) {
   const t = text.trim().toLowerCase().replace(/[.!?]+$/, "");
-  return GREETINGS.includes(t) || GREETING_RE.test(t);
+  if (GREETINGS.includes(t) || GREETING_RE.test(t)) return true;
+  if (/\b(my name|i live|i work|i am |i'm )\b/.test(t)) return false;
+  return /^(hi|hello|hey|yo)\b/.test(t) && t.length < 56;
+}
+
+function looksLikeMicCheck(text) {
+  const t = text.trim().toLowerCase();
+  return /\b(can you hear me|hello can you|testing 1|is this (on|working)|are you (there|listening))\b/.test(t);
 }
 function greetingReply() {
   const replies = [
@@ -1085,9 +1092,9 @@ $("form").addEventListener("submit", async (e) => {
   $("send").disabled = true;
   clearDemoBanner();
   try {
-    if (looksLikeGreeting(text)) {
+    if (looksLikeMicCheck(text) || looksLikeGreeting(text)) {
       addMsg("user", escapeHtml(text));
-      addMsg("bot", escapeHtml(greetingReply()));
+      addMsg("bot", escapeHtml(looksLikeMicCheck(text) ? "Yes. Ask me something, or tell me a fact to keep." : greetingReply()));
     } else if (looksLikeShareIntent(text)) {
       // Before chitchat: "guess what" is short enough to look like a
       // throwaway reaction, but it is an opening, so it deserves an

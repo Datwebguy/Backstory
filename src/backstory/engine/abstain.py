@@ -193,13 +193,17 @@ def _add_supporting_history(
 
 
 def _relevant(question: str, fact: RetrievedFact) -> bool:
+    if _asks_own_name(question):
+        return _looks_like_name_fact(fact)
+    if _asks_about_self(question):
+        return _looks_like_self_fact(fact)
     q = norm_text(question)
     blob = norm_text(
         " ".join([fact.predicate, fact.object_text, fact.subject_name, fact.qualifiers, fact.quote])
     )
     stop = {
         "the", "what", "where", "when", "how", "why", "does", "did", "was",
-        "name", "know", "tell", "about", "currently", "current", "many",
+        "know", "tell", "about", "currently", "current", "many",
     }
     q_tokens = {
         t.strip("?.,!;:")
@@ -222,9 +226,63 @@ def _relevant(question: str, fact: RetrievedFact) -> bool:
         return True
     if any(w in q for w in ("own", "have", "how many")) and fact.predicate in {"owns", "has"}:
         return True
+    if _asks_own_name(question) and _looks_like_name_fact(fact):
+        return True
+    if _asks_about_self(question) and _looks_like_self_fact(fact):
+        return True
     if any(w in q for w in ("name", "called")) and fact.predicate in NAME_PREDICATES:
         return True
     return False
+
+
+_OWN_NAME_RE = re.compile(
+    r"\b(my name|what(?:'s| is) my name|who am i|what am i called|call me)\b",
+    re.I,
+)
+_ABOUT_SELF_RE = re.compile(
+    r"\b(about me|remember about me|know about me|what do (?:you|i) (?:know|remember))\b",
+    re.I,
+)
+_NAME_IN_TEXT_RE = re.compile(
+    r"\b(?:my name is|i'?m called|call me|i am called)\b",
+    re.I,
+)
+_SELF_PREDICATES = NAME_PREDICATES | {
+    "lives_in", "works_at", "works_as", "located_in", "has", "owns",
+    "has_birthday", "born_in", "graduated",
+}
+
+
+def asks_own_name(question: str) -> bool:
+    return bool(_OWN_NAME_RE.search(question))
+
+
+def asks_about_self(question: str) -> bool:
+    return bool(_ABOUT_SELF_RE.search(question))
+
+
+def _asks_own_name(question: str) -> bool:
+    return asks_own_name(question)
+
+
+def _asks_about_self(question: str) -> bool:
+    return asks_about_self(question)
+
+
+def _looks_like_name_fact(fact: RetrievedFact) -> bool:
+    if fact.predicate in NAME_PREDICATES:
+        return True
+    blob = f"{fact.object_text} {fact.quote}"
+    return bool(_NAME_IN_TEXT_RE.search(blob))
+
+
+def _looks_like_self_fact(fact: RetrievedFact) -> bool:
+    if _looks_like_name_fact(fact):
+        return True
+    who = (fact.subject_name or "").lower()
+    if who and who not in {"user", "you", "i", "me"}:
+        return False
+    return fact.predicate in _SELF_PREDICATES and fact.predicate != "stated"
 
 
 def _asked_constraint(question: str) -> str | None:
