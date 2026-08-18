@@ -1,237 +1,226 @@
-# Demo video script
+# Backstory — demo video script
 
-Three minutes maximum, and the rules say content past that may not be
-reviewed. Aim to land at 2:50.
+**Hard limit:** 3:00. Judges may ignore anything after that. Land at **2:45–2:50**.
 
-Hack Hydra asks the video to cover four things by name. This script is
-built around them, in this order, so none is left to chance:
+Hack Hydra asks the video to cover four things, in this order:
 
-1. the problem you are trying to solve
-2. what you actually built
-3. a demo of the project working
-4. how you used the HydraDB repo and why it matters
+1. The problem
+2. What you built
+3. The product working
+4. How you used the HydraDB repo, and why that matters
 
----
+This script hits all four. Do not add a fifth demo, a scoreboard, or a slide deck.
 
-## Before you record
-
-1. Sign in at <https://backstory.fly.dev/app> first, so the Google
-   redirect is not part of the take.
-2. Press **+ new chat**. That clears the screen only. Anything already
-   remembered stays remembered, so the drawer will not surprise you.
-3. Second tab on the repository, scrolled to `docs/ARCHITECTURE.md`.
-4. Third tab, optional but better: a terminal that has already run
-   `python -m backstory.tools.smoke_hydradb`, so the 10 of 10 result is
-   on screen without dead air.
-
-Settings: 1440x900 or larger, browser zoom about 110%, chat text is
-small after compression. Demo scenarios write to a separate sandbox
-account, so running them on camera does not pollute what you show
-later. Do not narrate the Google sign in page.
+Spoken pace: about 140 words per minute. The lines below are about 380 words. If you run long, cut the live-typing beat first, not HydraDB.
 
 ---
 
-## 0:00 to 0:20 — the problem, and what this is
+## Setup (do this before you press record)
 
-Both required elements one and two. Say the name and the shape of the
-thing early; a judge watching many entries should know what they are
-looking at inside ten seconds.
+1. Sign in at https://backstory.fly.dev/app so Google OAuth is not in the take.
+2. Click **+ new chat**. That clears the screen only. Memory stays.
+3. Browser: 1440×900 or larger, zoom about 110%. Chat text dies in compression if it is smaller.
+4. Second tab: https://github.com/Datwebguy/Backstory scrolled to `docs/ARCHITECTURE.md`.
+5. Optional third tab: a terminal that already shows `SMOKE OK` from  
+   `python -m backstory.tools.smoke_hydradb`.
+6. Theme: light or dark, pick one and leave it. Do not narrate the toggle.
+7. Do not open the sign-in page on camera.
 
-**On screen:** <https://backstory.fly.dev/>, drifting conversation cards
-visible.
-
-> "Assistants forget. Ask about something you said last month and it is
-> gone, because the conversation was stored as text and then truncated
-> away."
-
-> "This is Backstory, a memory layer for conversational agents, built
-> for Track 03. It stores what you say as versioned facts in a HydraDB
-> graph, so it can answer weeks later, tell you when something changed,
-> and say plainly when it does not know."
-
-> "Every exchange on this page is real output from the running engine."
+Demo cards write into a `demo:` sandbox. They will not mix with your real account. If an old answer looks wrong, click **+ new chat** and run the card again on the deployed app.
 
 ---
 
-## 0:20 to 0:55 — demo one, a fact that changed
+## Shot list
 
-Element three starts here. This is the core claim; do not rush it.
+### 0:00–0:18 — Problem, then the name
 
-**On screen:** `/app`, click **Changed plans**.
+**Screen:** https://backstory.fly.dev/ (landing, conversation cards moving).
 
-Seeded: at Company A in February, left in May, joined Company B in
-June. Then, *Where do I work now?*
+**Say:**
 
-> "Three statements across four months, and the later ones contradict
-> the first. It answers Company B."
+> Assistants forget. Last month’s conversation is a blob of text. When the window fills up, the fact is gone.
 
-Click **based on N memories**.
+> This is Backstory. It is a memory layer for conversational agents, built for Track 03. What you say becomes versioned facts in a HydraDB graph. It can answer weeks later, say what changed, and refuse when the graph does not have the answer.
 
-> "And here is the part that matters. Company A was not overwritten. It
-> is still on record, marked superseded, with the date it stopped being
-> true. That is a SUPERSEDES edge in the graph, not a sort by
-> timestamp."
+Hold the landing for one extra beat after the name. Do not rush into `/app`.
 
 ---
 
-## 0:55 to 1:20 — demo two, knowing when it does not know
+### 0:18–0:52 — A fact that changed
 
-**On screen:** **+ new chat**, then **Knows when it does not know**.
+**Screen:** `/app`. Click **Changed plans**.
 
-Memory holds a 16 GB staging instance and a 32 GB production instance.
-The question asks about a 64 GB instance.
+The thread seeds three dated lines, then asks *Where do I work now?*
 
-> "Memory that guesses is worse than memory that admits a gap. There are
-> related facts here, two sized instances, so a similarity search would
-> happily answer from the nearest one."
+Wait until the answer shows Company B. Then click **based on N memories**.
 
-> "It refuses, because the specific thing asked about is not in the
-> graph. That is a gate in the engine, not the model being polite."
+**Say:**
 
----
+> February: Company A. May: left. June: Company B. Three conversations, four months. It answers Company B.
 
-## 1:20 to 1:45 — demo three, why and not just what
+> Company A is still here. It is marked superseded, with the date it stopped being true. That is a SUPERSEDES edge in HydraDB. It is not “whichever sentence ranked highest.”
 
-**On screen:** **+ new chat**, then **Decision history**.
-
-MongoDB planned in January, Postgres preferred in March, a consistency
-requirement in April, standardised in June. Then, *Why did we choose
-Postgres?*
-
-> "This is the question a transcript cannot answer. The reason is spread
-> across four conversations, and the deciding fact, the consistency
-> requirement, never mentions Postgres at all."
-
-> "It reconstructs the decision by following what replaced what, and
-> pulls in the requirement behind the switch."
+If the drawer is slow, keep talking over it. Do not apologize to the camera.
 
 ---
 
-## 1:45 to 2:05 — that it is a product, not a script
+### 0:52–1:18 — It knows when it does not know
 
-Covers product completeness and usability, which is a judging criterion
-on its own.
+**Screen:** **+ new chat**, then **Knows when it does not know**.
 
-**On screen:** type into the composer directly, do not use a button.
+Memory has a 16 GB staging instance and a 32 GB production instance. The question is *How many services run on the 64 GB instance?*
 
-Type `my name is Eben`, then `my birthday is March 12`, then ask
-`what is my birthdate?`
+Wait for the refuse.
 
-> "This is live, and it answers birthdate from a fact stored as
-> birthday."
+**Say:**
 
-Tap the theme toggle once while talking.
+> Related facts exist. Two sized instances. A nearest-neighbor search would answer from the closest one.
 
-> "It is deployed, every account signs in with Google and gets its own
-> isolated graph, and it works on a phone and in dark mode."
+> It refuses. Sixty-four gigabytes was never stated. That gate is in the engine. The model does not get to invent a no.
 
 ---
 
-## 2:05 to 2:40 — how HydraDB is used, and why it matters
+### 1:18–1:46 — Why, not only what
 
-Required element four. Give it the time; it is also a judging criterion
-and a repository requirement.
+**Screen:** **+ new chat**, then **Decision history**.
 
-**On screen:** the repository, `docs/ARCHITECTURE.md`, then
-`src/backstory/hydra/schema.py`. Show the 10 of 10 smoke result if you
-prepared it.
+Four dated lines, then *Why did we choose Postgres?*
 
-> "HydraDB is the source of truth, not a cache. Users, sessions, facts,
-> entities, and the SUPERSEDES and CONTRADICTS edges between them all
-> live in the graph. Answers come from traversal out of seed entities,
-> not nearest neighbour text search. The SQLite sidecar only mints ids
-> and holds a rebuildable index; it is not allowed to answer anything."
+**Say:**
 
-Why it matters, in one line:
+> MongoDB in January. Postgres in March. A consistency requirement in April that never names the database. A standard in June.
 
-> "On a vector store, the superseded value and the current one look
-> equally similar to a query. Current versus historical, what replaced
-> what, and what contradicts what are edges, so a graph is what makes
-> the answer and its history separable at all."
+> The reason is spread across four sessions. Backstory walks the SUPERSEDES chain and pulls the requirement that justified the switch. A transcript store cannot do that.
+
+Skip **Remembered across conversations**. Three working demos is enough. A fourth will blow the HydraDB section.
 
 ---
 
-## 2:40 to 2:55 — close
+### 1:46–2:02 — It is a product
 
-**On screen:** the landing page footer, where the supersede chain draws.
+**Screen:** **+ new chat**. Type, do not click a card.
 
-> "One fact, three points in time. Two superseded, one current, all
-> three still on record. Backstory is live at backstory dot fly dot dev,
-> and the code is on GitHub."
+Type: `my name is Eben`  
+Then: `what is my name?`
 
----
+**Say:**
 
-## Coverage check before uploading
+> That was live, not a fixture. Every account signs in with Google and gets its own graph. The demo cards you just saw run in a separate sandbox.
 
-Required elements:
-
-- [ ] the problem — 0:00
-- [ ] what you built, by name — 0:10
-- [ ] a demo of it working — 0:20 to 2:05, three scenarios plus live typing
-- [ ] how HydraDB is used and why it matters — 2:05 to 2:40
-
-Judging criteria, and where the video speaks to each:
-
-- [ ] technical execution — the supersede lineage in the drawer, the
-      abstention gate, the smoke result
-- [ ] use of HydraDB and graph native approaches — 2:05 section, plus
-      the vector store contrast
-- [ ] product completeness and usability — deployed, signed in, per
-      account, phone and dark mode, 1:45 section
-- [ ] quality of results — real transcripts throughout, and no invented
-      numbers
-- [ ] originality — answering *why* across four sessions, and refusing
-      when neighbours exist
+If the name question is slow, cut after “I’ll keep that” and move on.
 
 ---
 
-## Claims to avoid on camera
+### 2:02–2:38 — How HydraDB is used, and why it matters
 
-Each of these is something the project cannot currently support, and a
-judge who checks will find out.
+**Screen:** GitHub, `docs/ARCHITECTURE.md`, then a glance at `src/backstory/hydra/schema.py`. If you have it, cut to the 10 of 10 smoke result.
 
-- **No LongMemEval score.** The official `evaluate_qa.py` judge has
-  never been run; it needs an OpenAI key with credit. You may say "we
-  built the official evaluation path", never "we scored X".
-- **No BEAM result.** The adapter and runner are in the repo, but no run
-  completed. If that changes, quote it as "judged against BEAM's
-  published rubrics", never as an official BEAM score.
-- **Do not claim to beat a baseline.** The one measured slice, twelve
-  questions scored by loose token overlap, showed parity with a naive
-  graph ablation and with session retrieval. That is a diagnostic.
-- **The storage bug is upstream, and say so precisely.** It is
-  hydra-db/hydradb#81, confirmed and reproduced, and the deployment
-  works around it with S3 compatible storage. Told accurately that is a
-  strength, not an excuse.
+**Say:**
 
-## Safe to say, because it is true
+> HydraDB’s graph-node is the source of truth. Users, sessions, facts, entities, SUPERSEDES, CONTRADICTS: all nodes and edges. Answers are a traversal from seed entities, not a similarity search over chat logs.
 
-- Facts are versioned; superseded values are kept with their dates.
-- Abstention is an engine gate, shown on a question whose neighbours do
-  exist in memory.
-- Each account is isolated server side.
-- HydraDB is the graph of record; the sidecar cannot answer questions.
-- It runs without an LLM, and falls back to that path automatically if
-  the provider fails.
-- 19 engine tests, and 10 of 10 HydraDB capability checks, pass.
+> The SQLite sidecar only mints integer ids and holds a rebuildable index. It is not allowed to answer.
+
+> We used the public HydraDB image, the documented Docker ports, and the Cypher the OSS parser actually accepts. No Hydra Cloud.
+
+> On a vector store, the old employer and the new one look equally similar to “where do I work.” Current versus historical is an edge. That is why the graph is the product, not a cache in front of one.
 
 ---
 
-## Submission checklist (deadline 20 August 2026, 11:59 PM PT)
+### 2:38–2:50 — Close
 
-- [ ] Video, 3 minutes or less, uploaded to YouTube or similar. Unlisted
-      is acceptable.
-- [ ] Official Google Form submitted.
-- [ ] Public repository: <https://github.com/Datwebguy/Backstory>
+**Screen:** landing page again. If the footer shows the supersede chain, leave it visible.
 
-Repository requirements, all currently present:
+**Say:**
 
-- [x] complete source code
-- [x] README with setup and run instructions
-- [x] explanation of how HydraDB is used (README plus
-      `docs/ARCHITECTURE.md`)
-- [x] dependency and environment info (`pyproject.toml`, `.env.example`)
-- [x] third party attribution (`NOTICE`)
-- [x] open source license (`LICENSE`, MIT; HydraDB is AGPL 3.0 and runs
-      as a separate service)
-- [x] no commits before 12 August 2026 (first commit 14 August)
+> One fact, three points in time. Two superseded, one current, all three still on record.
+
+> Backstory is live at backstory.fly.dev. The code is on GitHub.
+
+Stop talking. Hold two seconds. End.
+
+---
+
+## Teleprompter (read this if you only want the spoken track)
+
+Assistants forget. Last month’s conversation is a blob of text. When the window fills up, the fact is gone.
+
+This is Backstory. It is a memory layer for conversational agents, built for Track 03. What you say becomes versioned facts in a HydraDB graph. It can answer weeks later, say what changed, and refuse when the graph does not have the answer.
+
+February: Company A. May: left. June: Company B. Three conversations, four months. It answers Company B.
+
+Company A is still here. It is marked superseded, with the date it stopped being true. That is a SUPERSEDES edge in HydraDB. It is not “whichever sentence ranked highest.”
+
+Related facts exist. Two sized instances. A nearest-neighbor search would answer from the closest one.
+
+It refuses. Sixty-four gigabytes was never stated. That gate is in the engine. The model does not get to invent a no.
+
+MongoDB in January. Postgres in March. A consistency requirement in April that never names the database. A standard in June.
+
+The reason is spread across four sessions. Backstory walks the SUPERSEDES chain and pulls the requirement that justified the switch. A transcript store cannot do that.
+
+That was live, not a fixture. Every account signs in with Google and gets its own graph. The demo cards you just saw run in a separate sandbox.
+
+HydraDB’s graph-node is the source of truth. Users, sessions, facts, entities, SUPERSEDES, CONTRADICTS: all nodes and edges. Answers are a traversal from seed entities, not a similarity search over chat logs.
+
+The SQLite sidecar only mints integer ids and holds a rebuildable index. It is not allowed to answer.
+
+We used the public HydraDB image, the documented Docker ports, and the Cypher the OSS parser actually accepts. No Hydra Cloud.
+
+On a vector store, the old employer and the new one look equally similar to “where do I work.” Current versus historical is an edge. That is why the graph is the product, not a cache in front of one.
+
+One fact, three points in time. Two superseded, one current, all three still on record.
+
+Backstory is live at backstory.fly.dev. The code is on GitHub.
+
+---
+
+## Coverage
+
+| Required | Where |
+|---|---|
+| The problem | 0:00 |
+| What you built, by name | 0:08 |
+| Demo working | 0:18–2:02 |
+| HydraDB how and why | 2:02–2:38 |
+
+Judging, mapped to a shot:
+
+- Technical execution: superseded Company A in the drawer; 64 GB refuse; smoke 10/10 if you show it
+- Graph-native HydraDB: SUPERSEDES / traversal / sidecar cannot answer
+- Product: signed-in `/app`, live type-in, isolated accounts
+- Results: real engine output, no mocked bubbles
+- Originality: why-across-sessions, and refuse when neighbors exist
+
+---
+
+## Do not say on camera
+
+- Do not say you aced LongMemEval-S, or that you ran the 500-question / 115k set.
+- Do not say you beat RAG, mem0, or any baseline as a leaderboard result.
+- Do not say you have an official LME-V2 or official BEAM number.
+- Do not say Hydra Cloud.
+- Do not say the sidecar answers questions.
+- Do not mention hydradb#81 unless a judge asks later. It is not a video beat.
+
+If a judge later asks for a number, the true line is: official `evaluate_qa.py gpt-4o` on a **12-question oracle slice**, **9/12**, abstention **2/2**. That is not an S-500 score. Do not put it in this video unless you have ten spare seconds at 2:35 and you say the full caveat. Prefer the product.
+
+---
+
+## Safe to say
+
+- Facts are versioned. Superseded values stay, with dates.
+- Abstention is an engine gate. Neighbors can exist and it still refuses.
+- Each Google account has its own graph. Demo cards use a sandbox.
+- HydraDB graph-node is the record. The sidecar cannot answer.
+- Public image, OSS Cypher subset, no Hydra Cloud.
+- Live at backstory.fly.dev. Code at github.com/Datwebguy/Backstory.
+
+---
+
+## After the take
+
+- Export 1080p, 16:9, under 3:00.
+- Upload unlisted YouTube (or equivalent).
+- Submit the official form the same day: repo, https://backstory.fly.dev/, video.
+- Deadline: 20 August 2026, 11:59 PM PT.
