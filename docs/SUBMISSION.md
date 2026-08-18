@@ -14,8 +14,11 @@ the Google Form. A person has to do both.
 
 ## What not to claim on the form or in the video
 
-- No official LongMemEval number. `evaluate_qa.py gpt-4o` needs
-  `OPENAI_API_KEY`. Unofficial contains-match is not a score.
+- Official number you can back up: **9/12 (0.75)** on the 12-question
+  **oracle slice**, judge `evaluate_qa.py gpt-4o` (`gpt-4o-2024-08-06`),
+  abstention **2/2**. Artifact:
+  `runs/lme/strat12_hybrid/hypotheses.jsonl.eval-results-gpt-4o`.
+- That is **not** a LongMemEval-S 500 / 115k score. Do not write that.
 - Do not say you beat RAG as a leaderboard result. The 5K update
   (`25:50` vs stale `27:12`) is a single qualitative contrast.
 - LME-V2 adapter is not an official LME-V2 run.
