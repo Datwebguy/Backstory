@@ -1,147 +1,183 @@
 # Backstory — demo video script
 
-**Hard limit:** 3:00. Land at **2:40**. Do not go over.
+**Hard limit:** 3:00. Speak this as a person, not a spec. Land at **2:50**.
 
-Cover only what Hack Hydra asked for:
+Hack Hydra’s video must cover four things:
 
-1. The problem
-2. What you built
-3. The product working
-4. How you used HydraDB, and why it matters
+1. The problem you are trying to solve
+2. What you actually built
+3. A demo of the project working
+4. How you used the HydraDB repository, and why it matters
 
-Do not mention benchmarks, scores, baselines, RAG, mem0, BEAM, LongMemEval, tests, or bugs. Do not type into the chat on camera. Do not use your name. If a card does not show the answer you expect, skip the line and go to the next card. Do not explain a miss.
+Judges also listen for: technical execution, graph-native use of HydraDB, a real product, honest results, and an original idea. This script hits those without dumping jargon.
+
+Pace: about 140 words a minute. The spoken track is ~390 words.
 
 ---
 
-## Before record
+## Before you record
 
-1. Sign in at https://backstory.fly.dev/app. Do not film the Google page.
+1. Sign in at https://backstory.fly.dev/app. Do not film Google sign-in.
 2. Click **+ new chat**.
-3. Browser about 1440×900, zoom 110%.
-4. One extra tab: https://github.com/Datwebguy/Backstory
-5. Pick light or dark and leave it.
+3. Browser 1440×900 or larger, zoom about 110%.
+4. Second tab: https://github.com/Datwebguy/Backstory (README visible).
+5. Optional third tab: `docs/ARCHITECTURE.md`.
+6. One theme. Leave it.
+
+If a demo card answers wrong, skip that line and keep going. Do not explain a miss on camera.
 
 ---
 
 ## Shot list
 
-### 0:00–0:18 — Problem and name
+### 0:00–0:22 — Who is speaking, and what this is
 
 **Screen:** https://backstory.fly.dev/
 
 **Say:**
 
-> Assistants forget. A conversation is stored as text, then cut when the window fills.
+> Hello. I built Backstory. I’m Datwebguy on GitHub, Datweb3guy on X.
 
-> This is Backstory, a memory layer for conversational agents, built for Track 03. What you say is stored as versioned facts in HydraDB, so it can answer later, show what changed, and say when it does not know.
+> This is a Track 03 project: Memory and Context Retrieval. Backstory is a memory layer for conversational agents. You tell it something once. Weeks later it still knows. If a fact changed, it can tell you what it used to be. If it never heard the thing you asked, it says so, instead of guessing.
 
----
-
-### 0:18–0:52 — A fact that changed
-
-**Screen:** `/app`. Click **Changed plans**. Wait for the answer. Open **based on N memories** if it appears.
-
-**Say:**
-
-> Work was Company A, then a leave, then Company B, across three conversations.
-
-> It answers with the current employer. The earlier job is still in the graph, marked as replaced, with a date. That replacement is a SUPERSEDES edge in HydraDB.
-
-If the drawer does not open, do not comment. Continue.
+Hold the landing for a beat after your name. Then go on.
 
 ---
 
-### 0:52–1:16 — When it does not know
+### 0:22–0:42 — The problem the track is asking for
 
-**Screen:** **+ new chat**, then **Knows when it does not know**. Wait for the reply.
+**Screen:** still the landing, then cut to `/app` as you finish.
 
 **Say:**
 
-> Memory has two instance sizes. The question asks about a third size that was never stated.
+> Most assistants store a chat as a pile of text. When the window fills, last month is gone. Even when the text is still there, the system cannot tell current from old. “I work at Company A” and “I work at Company B” look like two similar sentences. Track 03 is about memory that lasts across sessions, updates when life changes, and does not invent an answer.
 
-> It does not guess from the nearby facts. It says it does not have enough information.
+---
+
+### 0:42–1:12 — Demo: a fact that changed
+
+**Screen:** `/app`. Click **Changed plans**. Wait for Company B. Open **on record** / **based on N memories** if it appears.
+
+**Say:**
+
+> Watch this. Three conversations, four months. In February, work is Company A. In May, that job ends. In June, Company B.
+
+> Ask where I work now, and it says Company B. Open the evidence and Company A is still there, dated, marked as replaced. HydraDB did not overwrite the old fact. It linked the new one to the old one. That is how a graph remembers change. A search over chat logs cannot do that cleanly.
+
+---
+
+### 1:12–1:32 — Demo: it knows when it does not know
+
+**Screen:** **+ new chat**, then **Knows when it does not know**. Wait for the refuse.
+
+**Say:**
+
+> Memory has a 16 gigabyte staging box and a 32 gigabyte production box. The question asks about 64 gigabytes. That size was never said.
+
+> Related facts are sitting right there. A similarity search would answer from the nearest size. Backstory refuses. Guessing from a neighbour is the failure mode this track cares about. The refuse is a rule in the engine, not the model being polite.
 
 If it answers with a number, do not narrate. Go to the next card.
 
 ---
 
-### 1:16–1:44 — A decision across sessions
+### 1:32–1:52 — Demo: a decision across sessions
 
 **Screen:** **+ new chat**, then **Decision history**.
 
 **Say:**
 
-> Four conversations: a first database, a change of plan, a consistency requirement, then a standard.
+> Four conversations. First a plan for MongoDB. Then a switch to Postgres. Then a requirement: we need strong consistency for billing. Then a standard: we standardised on Postgres.
 
-> The requirement never names the database. The answer still uses it, because the graph keeps the history of the decision, not only the last sentence.
+> The requirement never names Postgres. The answer still uses it, because the graph kept the whole chain, not only the last sentence. That is original for this track: why, not only what.
 
-Do not run **Remembered across conversations**.
+Skip **Remembered across conversations**. Three working demos leave time for HydraDB.
 
 ---
 
-### 1:44–2:28 — How HydraDB is used
+### 1:52–2:42 — How we used HydraDB, what we learned, why it matters
 
-**Screen:** the GitHub repository. Stay on the README or `docs/ARCHITECTURE.md`. Do not scroll hunting for files.
+**Screen:** GitHub README, then `docs/ARCHITECTURE.md` if you have the tab.
 
 **Say:**
 
-> HydraDB graph-node is the source of truth. Users, sessions, facts, and entities are nodes. SUPERSEDES and CONTRADICTS are edges.
+> HydraDB is not a cache in front of something else. We run the public open-source image, the graph-node process, locally in Docker and in production on Fly. Bolt on 7687, HTTP on 8443, admin on 9090. We did not use Hydra Cloud.
 
-> Retrieval is a walk from those entities. A small sidecar only allocates ids. It does not answer questions.
+> People, sessions, messages, facts, and entities are nodes. When a fact replaces another, that is an edge. When two facts cannot both be true, that is another edge. Answers are a walk from those nodes, not “find similar text.”
 
-> We run the public HydraDB image. We use the Cypher that the open-source parser accepts. We do not use Hydra Cloud.
+> A small SQLite file only mints integer ids. It is not allowed to answer.
 
-> Current versus historical is stored as an edge, so both can exist without one deleting the other.
+> What we learned from the repo: Hydra’s OpenCypher is a real subset. No IS NULL. No undirected matches. Writes have to follow their UNWIND rules exactly. We learned that by hitting the live parser, not by assuming Neo4j. We also learned Hydra is built for object storage, not a long-lived local disk, so the deployed graph sits on Tigris, Fly’s S3 store.
+
+> If you swapped Hydra for a vector database, you would lose current versus history as a first-class thing. That is why the database is the product.
 
 ---
 
-### 2:28–2:40 — Close
+### 2:42–2:55 — Close
 
-**Screen:** https://backstory.fly.dev/
+**Screen:** landing page.
 
 **Say:**
 
-> Backstory is live at backstory.fly.dev. The code is on GitHub.
+> Backstory is live at backstory.fly.dev. Source is github.com/Datwebguy/Backstory. Thank you.
 
-Stop. Hold two seconds. End.
+Stop. Two seconds of silence. End.
 
 ---
 
-## Teleprompter
+## Teleprompter (read this)
 
-Assistants forget. A conversation is stored as text, then cut when the window fills.
+Hello. I built Backstory. I’m Datwebguy on GitHub, Datweb3guy on X.
 
-This is Backstory, a memory layer for conversational agents, built for Track 03. What you say is stored as versioned facts in HydraDB, so it can answer later, show what changed, and say when it does not know.
+This is a Track 03 project: Memory and Context Retrieval. Backstory is a memory layer for conversational agents. You tell it something once. Weeks later it still knows. If a fact changed, it can tell you what it used to be. If it never heard the thing you asked, it says so, instead of guessing.
 
-Work was Company A, then a leave, then Company B, across three conversations.
+Most assistants store a chat as a pile of text. When the window fills, last month is gone. Even when the text is still there, the system cannot tell current from old. “I work at Company A” and “I work at Company B” look like two similar sentences. Track 03 is about memory that lasts across sessions, updates when life changes, and does not invent an answer.
 
-It answers with the current employer. The earlier job is still in the graph, marked as replaced, with a date. That replacement is a SUPERSEDES edge in HydraDB.
+Watch this. Three conversations, four months. In February, work is Company A. In May, that job ends. In June, Company B.
 
-Memory has two instance sizes. The question asks about a third size that was never stated.
+Ask where I work now, and it says Company B. Open the evidence and Company A is still there, dated, marked as replaced. HydraDB did not overwrite the old fact. It linked the new one to the old one. That is how a graph remembers change. A search over chat logs cannot do that cleanly.
 
-It does not guess from the nearby facts. It says it does not have enough information.
+Memory has a 16 gigabyte staging box and a 32 gigabyte production box. The question asks about 64 gigabytes. That size was never said.
 
-Four conversations: a first database, a change of plan, a consistency requirement, then a standard.
+Related facts are sitting right there. A similarity search would answer from the nearest size. Backstory refuses. Guessing from a neighbour is the failure mode this track cares about. The refuse is a rule in the engine, not the model being polite.
 
-The requirement never names the database. The answer still uses it, because the graph keeps the history of the decision, not only the last sentence.
+Four conversations. First a plan for MongoDB. Then a switch to Postgres. Then a requirement: we need strong consistency for billing. Then a standard: we standardised on Postgres.
 
-HydraDB graph-node is the source of truth. Users, sessions, facts, and entities are nodes. SUPERSEDES and CONTRADICTS are edges.
+The requirement never names Postgres. The answer still uses it, because the graph kept the whole chain, not only the last sentence. That is original for this track: why, not only what.
 
-Retrieval is a walk from those entities. A small sidecar only allocates ids. It does not answer questions.
+HydraDB is not a cache in front of something else. We run the public open-source image, the graph-node process, locally in Docker and in production on Fly. Bolt on 7687, HTTP on 8443, admin on 9090. We did not use Hydra Cloud.
 
-We run the public HydraDB image. We use the Cypher that the open-source parser accepts. We do not use Hydra Cloud.
+People, sessions, messages, facts, and entities are nodes. When a fact replaces another, that is an edge. When two facts cannot both be true, that is another edge. Answers are a walk from those nodes, not “find similar text.”
 
-Current versus historical is stored as an edge, so both can exist without one deleting the other.
+A small SQLite file only mints integer ids. It is not allowed to answer.
 
-Backstory is live at backstory.fly.dev. The code is on GitHub.
+What we learned from the repo: Hydra’s OpenCypher is a real subset. No IS NULL. No undirected matches. Writes have to follow their UNWIND rules exactly. We learned that by hitting the live parser, not by assuming Neo4j. We also learned Hydra is built for object storage, not a long-lived local disk, so the deployed graph sits on Tigris, Fly’s S3 store.
+
+If you swapped Hydra for a vector database, you would lose current versus history as a first-class thing. That is why the database is the product.
+
+Backstory is live at backstory.fly.dev. Source is github.com/Datwebguy/Backstory. Thank you.
+
+---
+
+## Coverage (for you, not for the camera)
+
+| What they asked | Where it lives |
+|---|---|
+| Who built it | 0:00 |
+| The problem | 0:22 |
+| What you built, by name and track | 0:08 |
+| Demo working | 0:42–1:52 |
+| HydraDB repo, tools, ports, OSS not Cloud | 1:52 |
+| What you learned from their software | 2:15 |
+| Why a graph, not a vector store | 2:32 |
+| Live product + GitHub | 2:42 |
+
+Do not say LongMemEval scores, 500 questions, or “we beat RAG.” Show the product. If a form field asks for a number later, use the validation doc, not this video.
 
 ---
 
 ## After the take
 
 - Export 1080p, 16:9, under 3:00.
-- Upload unlisted.
-- Submit the form: repo, https://backstory.fly.dev/, video.
-- Deadline: 20 August 2026, 11:59 PM PT.
-
-On the form, describe the product and the Hydra graph. Do not paste benchmark numbers unless you are looking at the validation doc and quoting it in full, including that it is a 12-question oracle slice and not LongMemEval-S.
+- Upload unlisted YouTube (or equivalent).
+- Submit the form the same day: repo, https://backstory.fly.dev/, video.
+- Deadline: **20 August 2026, 11:59 PM PT.**
