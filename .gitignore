@@ -24,3 +24,7 @@ apps/web/dist/
 .DS_Store
 Thumbs.db
 .claude/settings.local.json
+
+# Personal recording / form notes. Not part of the public repo.
+docs/DEMO_SCRIPT.md
+docs/SUBMISSION.md
